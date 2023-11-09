@@ -6,9 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const MOCK_MEMBER_COUNT = 3;
-// const MOCK_THRESHOLD = 2;
-
 const MOCK_GROUPS = [
   {
     id: "1",
@@ -78,7 +75,7 @@ export default function Group({ params }: { params: { id: string } }) {
     setGroup({ ...group, nominees: MOCK_NOMINEES, members: MOCK_MEMBERS });
   }, [params.id]);
 
-  const threshold = calculateThreshold(MOCK_MEMBER_COUNT);
+  const threshold = calculateThreshold(MOCK_MEMBERS.length);
 
   function canMemberJoinGroup(walletAddress: string): boolean {
     const nominee = group.nominees.find(
@@ -151,12 +148,18 @@ export default function Group({ params }: { params: { id: string } }) {
                 </p>
                 <p className="mr-6">{nominee.nominations}</p>
                 {nominee.nominations >= threshold ? (
-                  <button
-                    onClick={() => handleShareMintLink(nominee.walletAddress)}
+                  // <button
+                  //   onClick={() => handleShareMintLink(nominee.walletAddress)}
+                  //   className="bg-blue-200 hover:bg-blue-300 text-blue-800 font-bold py-2 px-4 rounded inline-flex items-center"
+                  // >
+                  //   Share mint link
+                  // </button>
+                  <Link
+                    href={`/mint/${params.id}`}
                     className="bg-blue-200 hover:bg-blue-300 text-blue-800 font-bold py-2 px-4 rounded inline-flex items-center"
                   >
-                    Share mint link
-                  </button>
+                    <p>Share mint link</p>
+                  </Link>
                 ) : (
                   <button
                     onClick={() => handleNominationClick(nominee.walletAddress)}
@@ -170,7 +173,7 @@ export default function Group({ params }: { params: { id: string } }) {
         </div>
 
         <div className="mt-6">
-          <h2 className="text-lg">Members ({MOCK_MEMBER_COUNT})</h2>
+          <h2 className="text-lg">Members ({MOCK_MEMBERS.length})</h2>
           {group?.members &&
             group.members.map((member) => (
               <div className="flex py-2" key={member.id}>
