@@ -23,10 +23,6 @@ contract QuadraticNetworksNFT is ERC721, ERC721Enumerable, Ownable {
         _maxNetworkSize = maxNetworkSize;
     }
 
-    function totalSupply() external view returns (uint256) {
-        return _totalCount;
-    }
-
     function _mintWithoutDuplicates(address[] memory initialOwners) internal {
         uint256 initialOwnersLength = initialOwners.length;
         bool[] memory addressMinted = new bool[](initialOwnersLength);
@@ -42,7 +38,7 @@ contract QuadraticNetworksNFT is ERC721, ERC721Enumerable, Ownable {
             addressMinted[i] = true;
 
             // Mint NFT
-            _safeMint(initialOwners[i], _totalCount + 1);
+            _safeMintWithoutDuplicates(initialOwners[i], _totalCount + 1);
 
             // Check for additional occurrences and mark them as minted
             for (uint256 j = i + 1; j < initialOwnersLength; j++) {
@@ -56,7 +52,7 @@ contract QuadraticNetworksNFT is ERC721, ERC721Enumerable, Ownable {
         delete addressMinted;
     }
 
-    function _safeMint(address to, uint256 tokenId) internal override {
+    function _safeMintWithoutDuplicates(address to, uint256 tokenId) internal {
         require(balanceOf(to) <= 0, "You can only mint 1 NFT.");
 
         super._safeMint(to, tokenId);
@@ -90,7 +86,7 @@ contract QuadraticNetworksNFT is ERC721, ERC721Enumerable, Ownable {
         require(checkMintPermission(msg.sender), "You aren't permitted to mint.");
 
         // Mint NFT using _safeMint
-        _safeMint(msg.sender, _totalCount + 1);
+        _safeMintWithoutDuplicates(msg.sender, _totalCount + 1);
     }
 
     function burn(uint256 tokenId) external {
@@ -104,20 +100,14 @@ contract QuadraticNetworksNFT is ERC721, ERC721Enumerable, Ownable {
         _ownerCount -= 1;
     }
 
-    function soulbind(uint256 tokenId) external onlyOwner {
-        require(_exists(tokenId), "Token does not exist.");
-        require(ownerOf(tokenId) == owner(), "Only the contract owner can soulbind NFTs.");
-    }
-
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override {
-        super._beforeTokenTransfer(from, to, tokenId);
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal {
         require(from == address(0) || to == address(0), "This a Soulbound token. It cannot be transferred. It can only be burned by the token owner.");
     }
 
-    function _approve(address to, uint256 tokenId) internal override {
-        require(ownerOf(tokenId) == owner(), "All NFTs in this collection are soulbound and can only be approved by the owner.");
-        super._approve(to, tokenId);
-    }
+    // function _approve(address to, uint256 tokenId) internal override {
+    //     require(ownerOf(tokenId) == owner(), "All NFTs in this collection are soulbound and can only be approved by the owner.");
+    //     super._approve(to, tokenId);
+    // }
 
     function setMaxNetworkSize(uint256 maxNetworkSize) external onlyOwner {
         require(maxNetworkSize >= _totalCount, "New maximum network size must be greater than or equal to the current network size.");
@@ -163,7 +153,7 @@ contract QuadraticNetworksNFT is ERC721, ERC721Enumerable, Ownable {
             }
         }
 
-        // Check if the count of nominations is greater than or equal to the square root of totalSupply()
+        // Check if the count of nominations is greater than or equal to the square root of _ownerCount
         if (nominationCount >= squareRoot) {
             return false;
         }
