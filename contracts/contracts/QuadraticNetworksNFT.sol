@@ -190,6 +190,10 @@ contract QuadraticNetworksNFT is ERC721Enumerable, Ownable {
             return approxSqrt + 1;
         }
     }
+
+    function getNominationThreshold(uint256 x) external pure returns (uint256) {
+        return sqrtRoundedUp(x);
+    }
     
 
     function getAddressNomination(address nominator) public view returns (address) {

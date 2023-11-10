@@ -249,4 +249,20 @@ describe('QuadraticNetworksNFT', function () {
     expect(ownedNFTs.length).to.equal(1);
     await logAllTokensAndNominations(quadraticNetworkNFTContract);
   });
+
+  // MARK: check sqrtRoundedUp function executes properly
+  it('Check if sqrtRoundedUp function performs correctly', async function () {
+    let initialOwners: any[] = [await user1.getAddress()];
+    const quadraticNetworkNFTContract = await ethers.deployContract(
+      'QuadraticNetworksNFT',
+      ['Test', 'Test', initialOwners, 10]
+    );
+    for (let i = 0; i < 18; i++) {
+      let sqrt = Math.ceil(Math.sqrt(i));
+      console.log({ i, sqrt });
+      expect(
+        parseInt(await quadraticNetworkNFTContract.getNominationThreshold(i))
+      ).to.equal(sqrt);
+    }
+  });
 });
