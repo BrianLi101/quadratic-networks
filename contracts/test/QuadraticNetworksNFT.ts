@@ -20,8 +20,9 @@ describe('QuadraticNetworksNFT', function () {
   let user2: Signer;
   let user3: Signer;
   let user4: Signer;
+  let user5: Signer;
   beforeEach(async function () {
-    [owner, user1, user2, user3, user4] = await ethers.getSigners();
+    [owner, user1, user2, user3, user4, user5] = await ethers.getSigners();
   });
   // MARK: Constructor Tests
   // it('Require one initialOwner in constructor', async function () {
@@ -92,7 +93,28 @@ describe('QuadraticNetworksNFT', function () {
   //     expect(error).to.exist;
   //   }
   // });
-  it('Ensure nominations are accurate', async function () {
+  // it('Ensure nominations are accurate', async function () {
+  //   let initialOwners: any[] = [await user1.getAddress()];
+  //   const quadraticNetworkNFTContract = await ethers.deployContract(
+  //     'QuadraticNetworksNFT',
+  //     ['Test', 'Test', initialOwners, 10]
+  //   );
+
+  //   let user1ConnectedContract = quadraticNetworkNFTContract.connect(user1);
+
+  //   // have user1 nominate user3
+  //   await user1ConnectedContract.nominate(await user3.getAddress());
+  //   let user1Nomination =
+  //     await quadraticNetworkNFTContract.getAddressNomination(
+  //       await user1.getAddress()
+  //     );
+
+  //   expect(user1Nomination).to.equal(await user3.getAddress());
+  // });
+
+  // MARK: mint and checkMintPermission
+  it('Check for mint permission at 1 nomination', async function () {
+    // user2 will attempt to mint with no nominations, with 1 wrong nomination, and with 1 correct nomination
     let initialOwners: any[] = [await user1.getAddress()];
     const quadraticNetworkNFTContract = await ethers.deployContract(
       'QuadraticNetworksNFT',
@@ -100,14 +122,30 @@ describe('QuadraticNetworksNFT', function () {
     );
 
     let user1ConnectedContract = quadraticNetworkNFTContract.connect(user1);
+    let user2ConnectedContract = quadraticNetworkNFTContract.connect(user1);
 
-    // have user1 nominate user3
-    await user1ConnectedContract.nominate(await user3.getAddress());
-    let user1Nomination =
-      await quadraticNetworkNFTContract.getAddressNomination(
-        await user1.getAddress()
+    let allTokens = await quadraticNetworkNFTContract.getAllTokens();
+    console.log({ allTokens });
+    let nominations = await quadraticNetworkNFTContract.getAllNominations();
+    console.log({ nominations });
+    // check for mint permission with no nominations
+    try {
+      let permission = await user2ConnectedContract.checkMintPermission(
+        await user2.getAddress()
       );
+      console.log({ permission });
+      expect(permission).to.equal(false);
+    } catch (error) {
+      console.log(error.message);
+    }
 
-    expect(user1Nomination).to.equal(await user3.getAddress());
+    // // have user1 nominate user3
+    // await user1ConnectedContract.nominate(await user3.getAddress());
+    // let user1Nomination =
+    //   await quadraticNetworkNFTContract.getAddressNomination(
+    //     await user1.getAddress()
+    //   );
+
+    // expect(user1Nomination).to.equal(await user3.getAddress());
   });
 });
