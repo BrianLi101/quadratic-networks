@@ -17,7 +17,7 @@ contract QuadraticNetworksNFT is ERC721, ERC721Enumerable, Ownable {
         string memory symbol,
         address[] memory initialOwners,
         uint256 maxNetworkSize
-    ) ERC721(name, symbol) {
+    ) ERC721(name, symbol) Ownable(msg.sender) {
         // Mint NFTs to initial owners without duplicates
         _mintWithoutDuplicates(initialOwners);
         _maxNetworkSize = maxNetworkSize;
