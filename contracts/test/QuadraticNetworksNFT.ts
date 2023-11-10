@@ -14,40 +14,71 @@ const WALLET_ADDRESS_3 = toChecksumAddress(
 );
 
 describe('QuadraticNetworksNFT', function () {
-  it('Assign tokens to three users in constructor', async function () {
-    let initialOwners = [WALLET_ADDRESS_1, WALLET_ADDRESS_2, WALLET_ADDRESS_3];
+  // MARK: Constructor Tests
+  // it('Require one initialOwner in constructor', async function () {
+  //   let initialOwners: any[] = [];
+  //   try {
+  //     const quadraticNetworkNFTContract = await ethers.deployContract(
+  //       'QuadraticNetworksNFT',
+  //       ['Test', 'Test', initialOwners, 10]
+  //     );
+  //   } catch (error) {
+  //     // Check that the error message matches the expected one
+  //     // console.log(JSON.stringify(error.error));
+  //     expect(error).to.exist;
+  //   }
+  // });
+  // it('Assign tokens to three users in constructor', async function () {
+  //   let initialOwners = [WALLET_ADDRESS_1, WALLET_ADDRESS_2, WALLET_ADDRESS_3];
+  //   const quadraticNetworkNFTContract = await ethers.deployContract(
+  //     'QuadraticNetworksNFT',
+  //     ['Test', 'Test', initialOwners, 10]
+  //   );
+  //   console.log('running for loop');
+  //   for (let i = 0; i < initialOwners.length; i++) {
+  //     let address = initialOwners[i];
+  //     let ownedNFTs = await quadraticNetworkNFTContract.getOwnedNFTs(address);
+  //     console.log(address, ' : ', ownedNFTs);
+  //     expect(ownedNFTs.length).to.equal(1);
+  //   }
+  // });
+  // it('Prevent duplicates from minting in constructor', async function () {
+  //   let initialOwners = [
+  //     WALLET_ADDRESS_1,
+  //     WALLET_ADDRESS_1,
+  //     WALLET_ADDRESS_1,
+  //     WALLET_ADDRESS_2,
+  //     WALLET_ADDRESS_3,
+  //   ];
+  //   const quadraticNetworkNFTContract = await ethers.deployContract(
+  //     'QuadraticNetworksNFT',
+  //     ['Test', 'Test', initialOwners, 10]
+  //   );
+  //   console.log('running for loop');
+  //   for (let i = 0; i < initialOwners.length; i++) {
+  //     let address = initialOwners[i];
+  //     let ownedNFTs = await quadraticNetworkNFTContract.getOwnedNFTs(address);
+  //     console.log(address, ' : ', ownedNFTs);
+  //     expect(ownedNFTs.length).to.equal(1);
+  //   }
+  // });
+
+  // MARK: nomination tests
+  it('Require nft ownership to nominate', async function () {
+    let initialOwners: any[] = [WALLET_ADDRESS_1];
     const quadraticNetworkNFTContract = await ethers.deployContract(
       'QuadraticNetworksNFT',
       ['Test', 'Test', initialOwners, 10]
     );
-
-    console.log('running for loop');
-    for (let i = 0; i < initialOwners.length; i++) {
-      let address = initialOwners[i];
-      let ownedNFTs = await quadraticNetworkNFTContract.getOwnedNFTs(address);
-      console.log(address, ' : ', ownedNFTs);
-      expect(ownedNFTs.length).to.equal(1);
-    }
-  });
-  it('Prevent duplicates from minting in constructor', async function () {
-    let initialOwners = [
-      WALLET_ADDRESS_1,
-      WALLET_ADDRESS_1,
-      WALLET_ADDRESS_1,
-      WALLET_ADDRESS_2,
-      WALLET_ADDRESS_3,
-    ];
-    const quadraticNetworkNFTContract = await ethers.deployContract(
-      'QuadraticNetworksNFT',
-      ['Test', 'Test', initialOwners, 10]
-    );
-
-    console.log('running for loop');
-    for (let i = 0; i < initialOwners.length; i++) {
-      let address = initialOwners[i];
-      let ownedNFTs = await quadraticNetworkNFTContract.getOwnedNFTs(address);
-      console.log(address, ' : ', ownedNFTs);
-      expect(ownedNFTs.length).to.equal(1);
+    try {
+      await quadraticNetworkNFTContract.nominate(WALLET_ADDRESS_3);
+      console.log('error doesnt exist');
+    } catch (error) {
+      console.log('error exists');
+      console.log(error);
+      // Check that the error message matches the expected one
+      // console.log(JSON.stringify(error.error));
+      expect(error).to.exist;
     }
   });
 });

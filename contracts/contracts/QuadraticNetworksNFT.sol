@@ -20,9 +20,10 @@ contract QuadraticNetworksNFT is ERC721Enumerable, Ownable {
         address[] memory initialOwners,
         uint256 maxNetworkSize
     ) ERC721(name, symbol) Ownable(msg.sender) {
+        require(initialOwners.length >= 1, 'You must provide at least one initial address.');
         console.log('constructor: %s %s %s', name, symbol, maxNetworkSize);
         for (uint256 i = 0; i < initialOwners.length; i++) {
-            console.log(initialOwners[i]);
+            console.log('Initial owner %s: %s', i, initialOwners[i]);
         }
         // Mint NFTs to initial owners without duplicates
         _mintWithoutDuplicates(initialOwners);
@@ -68,10 +69,13 @@ contract QuadraticNetworksNFT is ERC721Enumerable, Ownable {
     }
 
     function _addNomination(address nominee) internal {
+        console.log('_addNomination: %s nominates %s', msg.sender, nominee);
         // Check if the network size exceeds the maximum
-        require(_maxNetworkSize == 0 || _ownerCount >= _maxNetworkSize, "Network size exceeds the maximum allowed.");
+        require(_maxNetworkSize >= _ownerCount, "Network size exceeds the maximum allowed.");
+        console.log('_addNomination: network size is less than max');
         // check if nominating user posesses the nft
         require(balanceOf(msg.sender) > 0, "You must hold an NFT to nominate.");
+           console.log('_addNomination: nominator posesses nft');
         // add nomination to records
         _nominations[msg.sender] = nominee;
     }
@@ -84,6 +88,7 @@ contract QuadraticNetworksNFT is ERC721Enumerable, Ownable {
     }
 
     function nominate(address nominee) external {
+        console.log('nominate: %s nominates %s', msg.sender, nominee);
         _addNomination(nominee);
     }
 
