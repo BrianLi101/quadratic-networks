@@ -28,8 +28,10 @@ describe('QuadraticNetworksNFT', function () {
   let user3: Signer;
   let user4: Signer;
   let user5: Signer;
+  let mintingUser: Signer;
   beforeEach(async function () {
-    [owner, user1, user2, user3, user4, user5] = await ethers.getSigners();
+    [owner, user1, user2, user3, user4, user5, mintingUser] =
+      await ethers.getSigners();
   });
   // MARK: Constructor Tests
   // it('Require one initialOwner in constructor', async function () {
@@ -122,9 +124,78 @@ describe('QuadraticNetworksNFT', function () {
   // });
 
   // MARK: mint and checkMintPermission
-  it('Check for mint permission at 1 nomination', async function () {
-    // user2 will attempt to mint with no nominations, with 1 wrong nomination, and with 1 correct nomination
-    let initialOwners: any[] = [await user1.getAddress()];
+  // it('Check for mint permission at 1 in network', async function () {
+  //   // user2 will attempt to mint with no nominations, with 1 wrong nomination, and with 1 correct nomination
+  //   let initialOwners: any[] = [await user1.getAddress()];
+  //   const quadraticNetworkNFTContract = await ethers.deployContract(
+  //     'QuadraticNetworksNFT',
+  //     ['Test', 'Test', initialOwners, 10]
+  //   );
+
+  //   let user1ConnectedContract = quadraticNetworkNFTContract.connect(user1);
+  //   let user2ConnectedContract = quadraticNetworkNFTContract.connect(user2);
+
+  //   await logAllTokensAndNominations(quadraticNetworkNFTContract);
+
+  //   // check for mint permission with no nominations
+  //   let permission1 = await user2ConnectedContract.checkMintPermission(
+  //     await user2.getAddress()
+  //   );
+  //   console.log({ permission1 });
+  //   expect(permission1).to.equal(false);
+
+  //   // try to mint with no nominations
+  //   // await user2ConnectedContract
+  //   //   .mint()
+  //   //   .then(() => {
+  //   //     console.log('failed as expected');
+  //   //     assert.fail('Mint should have failed');
+  //   //   })
+  //   //   .finally(() => {
+  //   //     return;
+  //   //   });
+
+  //   // have user1 nominate wrong user (user3)
+  //   await user1ConnectedContract.nominate(await user3.getAddress());
+  //   let permission2 = await user2ConnectedContract.checkMintPermission(
+  //     await user2.getAddress()
+  //   );
+  //   console.log({ permission2 });
+  //   expect(permission2).to.equal(false);
+
+  //   // have user1 nominate user2
+  //   await user1ConnectedContract.nominate(await user2.getAddress());
+  //   let permission3 = await user2ConnectedContract.checkMintPermission(
+  //     await user2.getAddress()
+  //   );
+  //   console.log({ permission3 });
+  //   expect(permission3).to.equal(true);
+
+  //   // try to mint with 1 nomination
+  //   await user2ConnectedContract
+  //     .mint()
+  //     .then(() => {})
+  //     .catch((error: any) => {
+  //       assert.fail('Mint should have worked');
+  //     })
+  //     .finally(() => {
+  //       return;
+  //     });
+
+  //   let ownedNFTs = await quadraticNetworkNFTContract.getOwnedNFTs(
+  //     await user2.getAddress()
+  //   );
+  //   console.log(await user2.getAddress(), ' : ', ownedNFTs);
+  //   expect(ownedNFTs.length).to.equal(1);
+  //   await logAllTokensAndNominations(quadraticNetworkNFTContract);
+  // });
+  it('Check for mint permission at 3 in network', async function () {
+    // mintingUser will attempt to mint with 1 right nomination, and with 2 right nominations
+    let initialOwners: any[] = [
+      await user1.getAddress(),
+      await user2.getAddress(),
+      // await user3.getAddress(),
+    ];
     const quadraticNetworkNFTContract = await ethers.deployContract(
       'QuadraticNetworksNFT',
       ['Test', 'Test', initialOwners, 10]
@@ -132,18 +203,22 @@ describe('QuadraticNetworksNFT', function () {
 
     let user1ConnectedContract = quadraticNetworkNFTContract.connect(user1);
     let user2ConnectedContract = quadraticNetworkNFTContract.connect(user2);
+    let user3ConnectedContract = quadraticNetworkNFTContract.connect(user3);
+    let mintingUserConnectedContract =
+      quadraticNetworkNFTContract.connect(mintingUser);
 
     await logAllTokensAndNominations(quadraticNetworkNFTContract);
 
-    // check for mint permission with no nominations
-    let permission1 = await user2ConnectedContract.checkMintPermission(
-      await user2.getAddress()
+    // check for mint permission with 1 right nominations
+    await user1ConnectedContract.nominate(await mintingUser.getAddress());
+    let permission1 = await mintingUserConnectedContract.checkMintPermission(
+      await mintingUser.getAddress()
     );
     console.log({ permission1 });
     expect(permission1).to.equal(false);
 
     // try to mint with no nominations
-    // await user2ConnectedContract
+    // await user3ConnectedContract
     //   .mint()
     //   .then(() => {
     //     console.log('failed as expected');
@@ -152,15 +227,6 @@ describe('QuadraticNetworksNFT', function () {
     //   .finally(() => {
     //     return;
     //   });
-
-    // have user1 nominate wrong user (user3)
-    await user1ConnectedContract.nominate(await user3.getAddress());
-    let permission2 = await user2ConnectedContract.checkMintPermission(
-      await user2.getAddress()
-    );
-    console.log({ permission2 });
-    expect(permission2).to.equal(false);
-
     // have user1 nominate user2
     await user1ConnectedContract.nominate(await user2.getAddress());
     let permission3 = await user2ConnectedContract.checkMintPermission(

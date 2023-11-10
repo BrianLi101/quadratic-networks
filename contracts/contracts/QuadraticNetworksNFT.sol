@@ -155,7 +155,7 @@ contract QuadraticNetworksNFT is ERC721Enumerable, Ownable {
         }
 
         // Calculate the square root of _ownerCount rounded up
-        uint256 squareRoot = sqrt(_ownerCount);
+        uint256 squareRoot = sqrtRoundedUp(_ownerCount);
         console.log('checkMintPermission: _ownerCount - %s, squareRoot - %s, totalCount - %s', _ownerCount, squareRoot, _totalCount);
         // Get the count of nominations for the user
         uint256 nominationCount = 0;
@@ -181,6 +181,16 @@ contract QuadraticNetworksNFT is ERC721Enumerable, Ownable {
         }
         return y;
     }
+
+    function sqrtRoundedUp(uint256 x) internal pure returns (uint256) {
+        uint256 approxSqrt = sqrt(x);
+        if(approxSqrt * approxSqrt >= x) {
+            return approxSqrt;
+        } else {
+            return approxSqrt + 1;
+        }
+    }
+    
 
     function getAddressNomination(address nominator) public view returns (address) {
         return _nominations[nominator];
