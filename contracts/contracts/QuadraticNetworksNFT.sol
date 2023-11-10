@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract QuadraticNetworksNFT is ERC721, ERC721Enumerable, Ownable {
+contract QuadraticNetworksNFT is ERC721Enumerable, Ownable {
 
     mapping(address => address) public _nominations;
     uint256 public _ownerCount;
@@ -100,7 +100,7 @@ contract QuadraticNetworksNFT is ERC721, ERC721Enumerable, Ownable {
         _ownerCount -= 1;
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal {
+    function _beforeTokenTransfer(address from, address to) internal pure {
         require(from == address(0) || to == address(0), "This a Soulbound token. It cannot be transferred. It can only be burned by the token owner.");
     }
 
