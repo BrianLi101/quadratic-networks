@@ -14,32 +14,40 @@ const WALLET_ADDRESS_3 = toChecksumAddress(
 );
 
 describe('QuadraticNetworksNFT', function () {
-  it('Deployment should assign the total supply of tokens to the owner', async function () {
-    const [owner] = await ethers.getSigners();
-
+  it('Assign tokens to three users in constructor', async function () {
     let initialOwners = [WALLET_ADDRESS_1, WALLET_ADDRESS_2, WALLET_ADDRESS_3];
     const quadraticNetworkNFTContract = await ethers.deployContract(
       'QuadraticNetworksNFT',
       ['Test', 'Test', initialOwners, 10]
     );
 
+    console.log('running for loop');
     for (let i = 0; i < initialOwners.length; i++) {
       let address = initialOwners[i];
       let ownedNFTs = await quadraticNetworkNFTContract.getOwnedNFTs(address);
       console.log(address, ' : ', ownedNFTs);
+      expect(ownedNFTs.length).to.equal(1);
     }
-
-    // const ownerBalance = await hardhatToken.balanceOf(owner.address);
-    expect(await quadraticNetworkNFTContract.totalSupply()).to.equal(3);
   });
-  // it('Should deploy QuadraticNetworksNFT and retrieve data', async function () {
-  //   const MyContract = await ethers.getContractFactory('QuadraticNetworksNFT');
-  //   const myContract = await MyContract.deploy();
+  it('Prevent duplicates from minting in constructor', async function () {
+    let initialOwners = [
+      WALLET_ADDRESS_1,
+      WALLET_ADDRESS_1,
+      WALLET_ADDRESS_1,
+      WALLET_ADDRESS_2,
+      WALLET_ADDRESS_3,
+    ];
+    const quadraticNetworkNFTContract = await ethers.deployContract(
+      'QuadraticNetworksNFT',
+      ['Test', 'Test', initialOwners, 10]
+    );
 
-  //   await myContract.deployed();
-
-  //   // Perform some contract interactions and assertions
-  //   const data = await myContract.getData();
-  //   expect(data).to.equal('Hello, world!');
-  // });
+    console.log('running for loop');
+    for (let i = 0; i < initialOwners.length; i++) {
+      let address = initialOwners[i];
+      let ownedNFTs = await quadraticNetworkNFTContract.getOwnedNFTs(address);
+      console.log(address, ' : ', ownedNFTs);
+      expect(ownedNFTs.length).to.equal(1);
+    }
+  });
 });
