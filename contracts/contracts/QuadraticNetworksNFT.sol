@@ -121,8 +121,9 @@ contract QuadraticNetworksNFT is ERC721Enumerable, Ownable {
     }
 
     function getOwnedNFTs(address owner) external view returns (uint256[] memory) {
+        console.log('getOwnedNFTs: %s', owner);
         uint256 tokenCount = balanceOf(owner);
-
+        console.log('getOwnedNFTs - balance: %s', tokenCount);
         if (tokenCount == 0) {
             // No tokens owned by the address
             return new uint256[](0);

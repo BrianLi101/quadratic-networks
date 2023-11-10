@@ -17,15 +17,20 @@ describe('QuadraticNetworksNFT', function () {
   it('Deployment should assign the total supply of tokens to the owner', async function () {
     const [owner] = await ethers.getSigners();
 
-    const hardhatToken = await ethers.deployContract('QuadraticNetworksNFT', [
-      'Test',
-      'Test',
-      [WALLET_ADDRESS_1, WALLET_ADDRESS_2, WALLET_ADDRESS_3],
-      10,
-    ]);
-    console.log('created hardhate');
+    let initialOwners = [WALLET_ADDRESS_1, WALLET_ADDRESS_2, WALLET_ADDRESS_3];
+    const quadraticNetworkNFTContract = await ethers.deployContract(
+      'QuadraticNetworksNFT',
+      ['Test', 'Test', initialOwners, 10]
+    );
+
+    for (let i = 0; i < initialOwners.length; i++) {
+      let address = initialOwners[i];
+      let ownedNFTs = await quadraticNetworkNFTContract.getOwnedNFTs(address);
+      console.log(address, ' : ', ownedNFTs);
+    }
+
     // const ownerBalance = await hardhatToken.balanceOf(owner.address);
-    expect(await hardhatToken.totalSupply()).to.equal(3);
+    expect(await quadraticNetworkNFTContract.totalSupply()).to.equal(3);
   });
   // it('Should deploy QuadraticNetworksNFT and retrieve data', async function () {
   //   const MyContract = await ethers.getContractFactory('QuadraticNetworksNFT');
