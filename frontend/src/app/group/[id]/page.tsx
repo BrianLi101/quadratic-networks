@@ -1,61 +1,61 @@
 // TODO: Abstract client component into separate file so page does not
 // need to be client component
-"use client";
+'use client';
 
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import Image from 'next/image';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 const MOCK_GROUPS = [
   {
-    id: "1",
-    name: "Quadratic Lands",
-    image: "https://picsum.photos/200",
+    id: '1',
+    name: 'Quadratic Lands',
+    image: 'https://picsum.photos/200',
     maxGroupSize: 100,
-    chain: "Polygon",
+    chain: 'Polygon',
   },
   {
-    id: "2",
-    name: "Cold Plunge DAO",
-    image: "https://picsum.photos/200",
+    id: '2',
+    name: 'Cold Plunge DAO',
+    image: 'https://picsum.photos/200',
     maxGroupSize: 100,
-    chain: "Base",
+    chain: 'Base',
   },
 ];
 
 const MOCK_MEMBERS = [
   {
-    id: "1",
+    id: '1',
     // nominator: "alice.eth",
-    walletAddress: "alice.eth",
+    walletAddress: 'alice.eth',
     // image: "https://picsum.photos/200",
   },
   {
-    id: "2",
+    id: '2',
     // nominator: "charles.eth",
-    walletAddress: "0x123",
+    walletAddress: '0x123',
     // image: "https://picsum.photos/200",
   },
   {
-    id: "3",
+    id: '3',
     // nominator: "charles.eth",
-    walletAddress: "0x456",
+    walletAddress: '0x456',
     // image: "https://picsum.photos/200",
   },
 ];
 
 const MOCK_NOMINEES = [
   {
-    id: "1",
-    nominator: "alice.eth",
-    walletAddress: "bob.eth",
+    id: '1',
+    nominator: 'alice.eth',
+    walletAddress: 'bob.eth',
     nominations: 1,
     // image: "https://picsum.photos/200",
   },
   {
-    id: "2",
-    nominator: "charles.eth",
-    walletAddress: "0x123",
+    id: '2',
+    nominator: 'charles.eth',
+    walletAddress: '0x123',
     nominations: 1,
     // image: "https://picsum.photos/200",
   },
@@ -79,7 +79,7 @@ export default function Group({ params }: { params: { id: string } }) {
 
   function canMemberJoinGroup(walletAddress: string): boolean {
     const nominee = group.nominees.find(
-      (nom) => nom.walletAddress === walletAddress
+      (nom: any) => nom.walletAddress === walletAddress
     );
     return nominee !== undefined && nominee.nominations >= threshold;
   }
@@ -87,7 +87,7 @@ export default function Group({ params }: { params: { id: string } }) {
   function handleNominationClick(walletAddress: string) {
     console.log(`Nominate clicked for address: ${walletAddress}`);
 
-    setGroup((prevGroup) => {
+    setGroup((prevGroup: any) => {
       const updatedNominees = prevGroup.nominees.map((nominee: any) => {
         if (nominee.walletAddress === walletAddress) {
           return { ...nominee, nominations: nominee.nominations + 1 };
@@ -122,7 +122,7 @@ export default function Group({ params }: { params: { id: string } }) {
 
         <Link
           href={{
-            pathname: "/nomination/new",
+            pathname: '/nomination/new',
             query: { groupId: group.id }, // Pass the group ID as a query parameter
           }}
           className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
@@ -135,13 +135,13 @@ export default function Group({ params }: { params: { id: string } }) {
           <p className="text-gray-400">Threshold: {threshold}</p>
 
           {group?.nominees &&
-            group.nominees.map((nominee) => (
+            group.nominees.map((nominee: any) => (
               <div className="flex items-center py-2" key={nominee.id}>
                 <p
                   className={`flex-grow ${
                     canMemberJoinGroup(nominee.walletAddress)
-                      ? "text-green-500"
-                      : ""
+                      ? 'text-green-500'
+                      : ''
                   }`}
                 >
                   {nominee.walletAddress}
@@ -175,7 +175,7 @@ export default function Group({ params }: { params: { id: string } }) {
         <div className="mt-6">
           <h2 className="text-lg">Members ({MOCK_MEMBERS.length})</h2>
           {group?.members &&
-            group.members.map((member) => (
+            group.members.map((member: any) => (
               <div className="flex py-2" key={member.id}>
                 <p>{member.walletAddress}</p>
               </div>

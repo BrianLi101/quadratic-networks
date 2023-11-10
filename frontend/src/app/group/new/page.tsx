@@ -1,20 +1,27 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useAccount } from 'wagmi';
+import LoadingIndicator from '@/components/LoadingIndicator';
 
 export default function NewGroup() {
   const router = useRouter();
+  const { address, isConnecting, isDisconnected, isConnected } = useAccount();
+  const [deploying, setDeploying] = useState<boolean>(false);
 
   const handleSubmit = async () => {
+    console.log('user clicked submit');
+    setDeploying(true);
     try {
       const response = true;
-      const id = "1";
+      const id = '1';
 
       if (response) {
-        console.log("success submit");
+        console.log('success submit');
 
         // TODO: Route to group page
-        router.push(`/group/${id}`);
+        // router.push(`/group/${id}`);
       }
     } catch (error) {
       console.log(error);
@@ -37,7 +44,7 @@ export default function NewGroup() {
               required
             />
           </div>
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <label htmlFor="groupImage">Upload image:</label>
             <input
               type="file"
@@ -45,14 +52,16 @@ export default function NewGroup() {
               name="groupImage"
               className="mt-2 mb-6"
             />
-          </div>
+          </div> */}
         </form>
+        <h1>{deploying}</h1>
         <button
           type="submit"
           onClick={handleSubmit}
           className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
+          disabled={!address}
         >
-          Create group
+          Create group {deploying && <LoadingIndicator />}
         </button>
       </div>
     </main>
