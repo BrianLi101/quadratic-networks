@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 const { ethers } = require('hardhat');
 import hre from 'hardhat';
 import { toChecksumAddress } from 'ethereum-checksum-address';
@@ -13,6 +13,13 @@ const WALLET_ADDRESS_2 = toChecksumAddress(
 const WALLET_ADDRESS_3 = toChecksumAddress(
   '0x0285d44A2011a880144d22924b495c307c0BaF88'
 );
+
+const logAllTokensAndNominations = async (quadraticNetworkNFTContract: any) => {
+  let allTokens = await quadraticNetworkNFTContract.getAllTokens();
+  console.log({ allTokens });
+  let nominations = await quadraticNetworkNFTContract.getAllNominations();
+  console.log({ nominations });
+};
 
 describe('QuadraticNetworksNFT', function () {
   let owner: Signer;
@@ -50,7 +57,9 @@ describe('QuadraticNetworksNFT', function () {
   //     let ownedNFTs = await quadraticNetworkNFTContract.getOwnedNFTs(address);
   //     console.log(address, ' : ', ownedNFTs);
   //     expect(ownedNFTs.length).to.equal(1);
+  //     expect(parseInt(ownedNFTs[0])).to.equal(i);
   //   }
+  //   await logAllTokensAndNominations(quadraticNetworkNFTContract);
   // });
   // it('Prevent duplicates from minting in constructor', async function () {
   //   let initialOwners = [
@@ -122,30 +131,60 @@ describe('QuadraticNetworksNFT', function () {
     );
 
     let user1ConnectedContract = quadraticNetworkNFTContract.connect(user1);
-    let user2ConnectedContract = quadraticNetworkNFTContract.connect(user1);
+    let user2ConnectedContract = quadraticNetworkNFTContract.connect(user2);
 
-    let allTokens = await quadraticNetworkNFTContract.getAllTokens();
-    console.log({ allTokens });
-    let nominations = await quadraticNetworkNFTContract.getAllNominations();
-    console.log({ nominations });
+    await logAllTokensAndNominations(quadraticNetworkNFTContract);
+
     // check for mint permission with no nominations
-    try {
-      let permission = await user2ConnectedContract.checkMintPermission(
-        await user2.getAddress()
-      );
-      console.log({ permission });
-      expect(permission).to.equal(false);
-    } catch (error) {
-      console.log(error.message);
-    }
+    let permission1 = await user2ConnectedContract.checkMintPermission(
+      await user2.getAddress()
+    );
+    console.log({ permission1 });
+    expect(permission1).to.equal(false);
 
-    // // have user1 nominate user3
-    // await user1ConnectedContract.nominate(await user3.getAddress());
-    // let user1Nomination =
-    //   await quadraticNetworkNFTContract.getAddressNomination(
-    //     await user1.getAddress()
-    //   );
+    // try to mint with no nominations
+    // await user2ConnectedContract
+    //   .mint()
+    //   .then(() => {
+    //     console.log('failed as expected');
+    //     assert.fail('Mint should have failed');
+    //   })
+    //   .finally(() => {
+    //     return;
+    //   });
 
-    // expect(user1Nomination).to.equal(await user3.getAddress());
+    // have user1 nominate wrong user (user3)
+    await user1ConnectedContract.nominate(await user3.getAddress());
+    let permission2 = await user2ConnectedContract.checkMintPermission(
+      await user2.getAddress()
+    );
+    console.log({ permission2 });
+    expect(permission2).to.equal(false);
+
+    // have user1 nominate user2
+    await user1ConnectedContract.nominate(await user2.getAddress());
+    let permission3 = await user2ConnectedContract.checkMintPermission(
+      await user2.getAddress()
+    );
+    console.log({ permission3 });
+    expect(permission3).to.equal(true);
+
+    // try to mint with 1 nomination
+    await user2ConnectedContract
+      .mint()
+      .then(() => {})
+      .catch((error: any) => {
+        assert.fail('Mint should have worked');
+      })
+      .finally(() => {
+        return;
+      });
+
+    let ownedNFTs = await quadraticNetworkNFTContract.getOwnedNFTs(
+      await user2.getAddress()
+    );
+    console.log(await user2.getAddress(), ' : ', ownedNFTs);
+    expect(ownedNFTs.length).to.equal(1);
+    await logAllTokensAndNominations(quadraticNetworkNFTContract);
   });
 });

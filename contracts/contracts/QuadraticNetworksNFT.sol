@@ -44,13 +44,8 @@ contract QuadraticNetworksNFT is ERC721Enumerable, Ownable {
             // Mark address as minted
             addressMinted[i] = true;
             
-            // make sure NFTs start at 0
-            uint256 nftId = _totalCount + 1;
-            if(_totalCount == 0) {
-                nftId = 0;
-            }
             // Mint NFT
-            _safeMintWrapper(initialOwners[i], nftId);
+            _safeMintWrapper(initialOwners[i]);
 
             // Check for additional occurrences and mark them as minted
             for (uint256 j = i + 1; j < initialOwnersLength; j++) {
@@ -64,10 +59,11 @@ contract QuadraticNetworksNFT is ERC721Enumerable, Ownable {
         delete addressMinted;
     }
 
-    function _safeMintWrapper(address to, uint256 tokenId) internal {
+    function _safeMintWrapper(address to) internal {
+        console.log('_safeMintWrapper: %s', to);
         require(balanceOf(to) <= 0, "You can only mint 1 NFT.");
 
-        super._safeMint(to, tokenId);
+        super._safeMint(to, _totalCount);
         // Increment _ownerCount and _totalCount
         _ownerCount += 1;
         _totalCount += 1;
@@ -102,7 +98,7 @@ contract QuadraticNetworksNFT is ERC721Enumerable, Ownable {
         require(checkMintPermission(msg.sender), "You aren't permitted to mint.");
 
         // Mint NFT using _safeMint
-        _safeMintWrapper(msg.sender, _totalCount + 1);
+        _safeMintWrapper(msg.sender);
     }
 
     function burn(uint256 tokenId) external {
@@ -140,7 +136,7 @@ contract QuadraticNetworksNFT is ERC721Enumerable, Ownable {
             uint256[] memory result = new uint256[](tokenCount);
             for (uint256 i = 0; i < tokenCount; i++) {
                 result[i] = tokenOfOwnerByIndex(owner, i);
-                console.log('nft %s: ', i, result[i]);
+                console.log('nft %s: %s', i, result[i]);
             }
             return result;
         }
