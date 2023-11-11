@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@pcd/ethereum-ownership-pcd": "^0.8.0",
+    "@pcd/passport-interface": "^0.8.0",
     "@supabase/auth-helpers-nextjs": "^0.8.7",
     "@supabase/supabase-js": "^2.38.4",
     "@web3modal/wagmi": "^3.2.1",

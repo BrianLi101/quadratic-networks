@@ -5,6 +5,7 @@ const nextConfig = {
   // If you are using Wagmi, dynamic imports or supressHydrationWarning are recommended tro prevent Hydration mismatch errors
   webpack: (config) => {
     config.externals.push("pino-pretty", "lokijs", "encoding");
+    // config.resolve.fallback = { fs: false };
     return config;
   },
   images: {
