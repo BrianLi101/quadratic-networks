@@ -9,12 +9,10 @@ import WagmiProvider from '@/components/WagmiProvider';
 import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
 import bytecode from '@/contracts/QuadraticNetworksNFT/bytecode.json';
 import { goerli } from 'viem/chains';
-import { createPublicClient, http, getContractAddress } from 'viem';
+import { getContractAddress } from 'viem';
 import { mainnet } from 'viem/chains';
-export const publicClient = createPublicClient({
-  chain: goerli,
-  transport: http(process.env.NEXT_PUBLIC_ALCHEMY_URL_GOERLI),
-});
+import { SUPPORTED_CHAINS } from '@/resources/constants';
+import { getViemClient } from '@/helpers/chainHelpers';
 
 function NewGroup() {
   const router = useRouter();
@@ -24,7 +22,7 @@ function NewGroup() {
   const [transactionHash, setTransactionHash] = useState<`0x${string}`>();
 
   const getTransaction = async (hash: `0x${string}`) => {
-    let transaction = await publicClient.getTransaction({
+    let transaction = await getViemClient().getTransaction({
       hash: hash,
     });
     console.log({ transaction });
@@ -47,7 +45,7 @@ function NewGroup() {
         args: ['Test', 'TEST', [address], 1000],
         chain: goerli,
       });
-      const transaction = await publicClient.waitForTransactionReceipt({
+      const transaction = await getViemClient().waitForTransactionReceipt({
         hash: hash,
       });
       setTransactionHash(hash);
@@ -97,6 +95,21 @@ function NewGroup() {
               className="mt-2 mb-6"
             />
           </div> */}
+          <div className="dropdown">
+            <label tabIndex={0} className="btn m-1"></label>
+            <ul
+              tabIndex={0}
+              className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
+            >
+              {SUPPORTED_CHAINS.map((c) => {
+                return (
+                  <li key={c.id}>
+                    <a>{c.name}</a>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </form>
 
         <button

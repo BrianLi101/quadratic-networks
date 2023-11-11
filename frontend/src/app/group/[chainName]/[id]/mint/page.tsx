@@ -19,11 +19,8 @@ import { goerli } from 'viem/chains';
 
 import { getContract } from 'viem';
 import LoadingIndicator from '@/components/LoadingIndicator';
+import { getViemClient } from '@/helpers/chainHelpers';
 
-export const publicClient = createPublicClient({
-  chain: goerli,
-  transport: http(process.env.NEXT_PUBLIC_ALCHEMY_URL_GOERLI),
-});
 function MintPage({ params }: { params: { id: string; chainName: string } }) {
   const { address, isConnecting, isDisconnected, isConnected } = useAccount();
   const [minted, setMinted] = useState<boolean>();
@@ -42,7 +39,7 @@ function MintPage({ params }: { params: { id: string; chainName: string } }) {
   }, [mintHash]);
   const awaitNominationTransaction = async (hash: `0x${string}`) => {
     setMinting(true);
-    const transaction = await publicClient.waitForTransactionReceipt({
+    const transaction = await getViemClient().waitForTransactionReceipt({
       hash,
     });
     console.log('transaction finished: ', transaction);
@@ -54,7 +51,7 @@ function MintPage({ params }: { params: { id: string; chainName: string } }) {
     const contract = getContract({
       address: params.id as `0x${string}`,
       abi,
-      publicClient,
+      publicClient: getViemClient(),
     });
 
     return await contract.read.checkMintPermission({ args: [address] });

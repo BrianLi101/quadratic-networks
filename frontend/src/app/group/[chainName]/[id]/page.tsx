@@ -13,15 +13,11 @@ import {
   useAccount,
   useWaitForTransaction,
 } from 'wagmi';
-import { createPublicClient, http, getContractAddress } from 'viem';
-import { goerli } from 'viem/chains';
 import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
 import { getContract } from 'viem';
 import LoadingIndicator from '@/components/LoadingIndicator';
-export const publicClient = createPublicClient({
-  chain: goerli,
-  transport: http(process.env.NEXT_PUBLIC_ALCHEMY_URL_GOERLI),
-});
+
+import { getViemClient } from '@/helpers/chainHelpers';
 
 type Address = `0x${string}`;
 interface Nominee {
@@ -68,7 +64,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
 
   const awaitNominationTransaction = async (hash: `0x${string}`) => {
     setNominating(true);
-    const transaction = await publicClient.waitForTransactionReceipt({
+    const transaction = await getViemClient().waitForTransactionReceipt({
       hash,
     });
     console.log('transaction finished: ', transaction);
@@ -82,7 +78,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     const contract = getContract({
       address: params.id as `0x${string}`,
       abi,
-      publicClient,
+      publicClient: getViemClient(),
     });
     const totalSupply = (await contract.read.totalSupply()) as BigInt;
     console.log(totalSupply.toString());
