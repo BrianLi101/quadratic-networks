@@ -22,6 +22,7 @@ import LoadingIndicator from '@/components/LoadingIndicator';
 import {
   getViemClient,
   checkOrSwitchToActiveChain,
+  setActiveChainFromURL,
 } from '@/helpers/chainHelpers';
 import { resolveENSToAddress } from '@/helpers/ens';
 
@@ -51,24 +52,6 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   const [nomineeAddress, setNomineeAddress] = useState<string>();
   const [name, setName] = useState<string>();
 
-  const getAddressFromEns = async (ens: string | undefined) => {
-    try {
-      if (!ens) return;
-      console.log('has ens, truing to resolve');
-      var address = await getViemClient().getEnsAddress({
-        name: normalize(ens),
-      });
-      console.log('getAddressFromEns: ', address);
-      // Return original ens if no address found
-      if (!address) return ens;
-      return address;
-    } catch (error) {
-      console.log('failing to resolve ens');
-      console.log(error);
-      return ens;
-    }
-  };
-
   const { config } = usePrepareContractWrite({
     address: params.id as `0x${string}`,
     abi,
@@ -79,6 +62,10 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
 
   useEffect(() => {
     loadContractData();
+    if (typeof window === 'object') {
+      console.log('setting active chain');
+      setActiveChainFromURL(window.location.href);
+    }
   }, []);
 
   useEffect(() => {
@@ -164,10 +151,8 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     console.log(`Nominate clicked for address: ${nomineeAddress}`);
 
     if (!(await checkOrSwitchToActiveChain(walletClient))) return;
-    console.log('got through check');
     try {
       let resolvedAddress = await resolveENSToAddress(nomineeAddress);
-      console.log({ resolvedAddress });
       const { request } = await getViemClient().simulateContract({
         account: walletClient.account,
         address: params.id as `0x${string}`,
@@ -176,7 +161,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
         args: [resolvedAddress],
       });
 
-      // walletClient.writeContract(request);
+      walletClient.writeContract(request);
       // if (write) {
       //   console.log('write exists');
       // } else {

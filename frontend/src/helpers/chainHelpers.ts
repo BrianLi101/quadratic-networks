@@ -8,7 +8,7 @@ import { alchemyProvider } from 'wagmi/providers/alchemy';
 
 let activeChain: Chain = SUPPORTED_CHAINS[0];
 
-export const getActiveChain = () => activeChain;
+export const getActiveChain = (): Chain => activeChain;
 export const setActiveChain = (chain: Chain) => {
   activeChain = chain;
 };
@@ -62,21 +62,23 @@ export const checkOrSwitchToActiveChain = async (
 };
 
 export const setActiveChainFromURL = (url: string) => {
+  console.log('active chain was: ', activeChain.network);
   const regex = /\/group\/(\w+)\//;
   const match = url.match(regex);
   if (match) {
     const chainName = match[1];
-    switch (activeChain) {
-      case goerli:
+    switch (chainName) {
+      case goerli.network:
         activeChain = goerli;
         break;
-      case base:
+      case base.network:
         activeChain = base;
         break;
-      case optimism:
+      case optimism.network:
         activeChain = optimism;
         break;
     }
+    console.log('set active chain to : ', activeChain.network);
   } else {
     console.log('No match found.');
   }

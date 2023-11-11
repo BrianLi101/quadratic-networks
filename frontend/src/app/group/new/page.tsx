@@ -46,7 +46,7 @@ function NewGroup() {
       nonce: BigInt(transaction.nonce),
     });
     console.log({ contractAddressData });
-    router.push(`/group/${getActiveChain().name}/${contractAddressData}`);
+    router.push(`/group/${getActiveChain().network}/${contractAddressData}`);
   };
   const handleSubmit = async () => {
     console.log('user clicked submit');
