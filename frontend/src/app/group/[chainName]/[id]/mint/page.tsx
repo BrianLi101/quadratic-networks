@@ -66,7 +66,7 @@ function MintPage({ params }: { params: { id: string; chainName: string } }) {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-6 lg:p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
+      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex flex-col">
         <h1 className="text-2xl">You&apos;ve been invited to join!</h1>
 
         <button
@@ -82,10 +82,19 @@ function MintPage({ params }: { params: { id: string; chainName: string } }) {
             if (!(await checkOrSwitchToActiveChain(walletClient))) return;
             write && write();
           }}
-          className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
+          className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded items-center"
           disabled={minting}
         >
           Mint {minting && <LoadingIndicator />}
+        </button>
+        <button
+          onClick={async () => {
+            window.location.href = window.location.href.replace('/mint', '');
+          }}
+          className="mbg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded items-center"
+          disabled={minting}
+        >
+          View Group
         </button>
       </div>
     </main>
