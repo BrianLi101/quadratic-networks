@@ -1,27 +1,29 @@
 // TODO: Abstract client component into separate file so page does not
 // need to be client component
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import WagmiProvider from "@/components/WagmiProvider";
-import toast from "react-hot-toast";
-import QRCode from "react-qr-code";
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import WagmiProvider from '@/components/WagmiProvider';
+import toast from 'react-hot-toast';
+import QRCode from 'react-qr-code';
 import {
   useContractReads,
   usePrepareContractWrite,
   useContractWrite,
   useAccount,
   useWalletClient,
-} from "wagmi";
-import abi from "@/contracts/QuadraticNetworksNFT/abi.json";
-import { getContract } from "viem";
-import LoadingIndicator from "@/components/LoadingIndicator";
+} from 'wagmi';
+import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
+import { getContract } from 'viem';
+import { normalize } from 'viem/ens';
+import LoadingIndicator from '@/components/LoadingIndicator';
 
 import {
   getViemClient,
   checkOrSwitchToActiveChain,
-} from "@/helpers/chainHelpers";
+} from '@/helpers/chainHelpers';
+import { resolveENSToAddress } from '@/helpers/ens';
 
 type Address = `0x${string}`;
 interface Nominee {
@@ -52,11 +54,16 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   const getAddressFromEns = async (ens: string | undefined) => {
     try {
       if (!ens) return;
-      var address = await getViemClient().getEnsAddress({ name: ens });
+      console.log('has ens, truing to resolve');
+      var address = await getViemClient().getEnsAddress({
+        name: normalize(ens),
+      });
+      console.log('getAddressFromEns: ', address);
       // Return original ens if no address found
       if (!address) return ens;
       return address;
     } catch (error) {
+      console.log('failing to resolve ens');
       console.log(error);
       return ens;
     }
@@ -65,8 +72,8 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   const { config } = usePrepareContractWrite({
     address: params.id as `0x${string}`,
     abi,
-    functionName: "nominate",
-    args: [getAddressFromEns(nomineeAddress)],
+    functionName: 'nominate',
+    args: [nomineeAddress],
   });
   const { write, isLoading, data: nominationHash } = useContractWrite(config);
 
@@ -76,7 +83,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
 
   useEffect(() => {
     if (nominationHash) {
-      console.log("got nomination hash", nominationHash);
+      console.log('got nomination hash', nominationHash);
 
       awaitNominationTransaction(nominationHash.hash);
     }
@@ -88,8 +95,8 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     const transaction = await getViemClient().waitForTransactionReceipt({
       hash,
     });
-    console.log("transaction finished: ", transaction);
-    toast.success("Nominated!");
+    console.log('transaction finished: ', transaction);
+    toast.success('Nominated!');
 
     setNominating(false);
     loadContractData();
@@ -109,7 +116,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
       (await contract.read.getAllNominations()) as Nomination[];
     const nominationMap: { [id: Address]: Nominee } = {};
     allNominations.map(({ nominee, nominator }) => {
-      if (nominee === "0x0000000000000000000000000000000000000000") return;
+      if (nominee === '0x0000000000000000000000000000000000000000') return;
 
       let existingNominee = nominationMap[nominee];
       if (existingNominee) {
@@ -157,11 +164,28 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     console.log(`Nominate clicked for address: ${nomineeAddress}`);
 
     if (!(await checkOrSwitchToActiveChain(walletClient))) return;
-
+    console.log('got through check');
     try {
-      write && write();
-      loadContractData();
-    } catch (error) {}
+      let resolvedAddress = await resolveENSToAddress(nomineeAddress);
+      console.log({ resolvedAddress });
+      const { request } = await getViemClient().simulateContract({
+        account: walletClient.account,
+        address: params.id as `0x${string}`,
+        abi,
+        functionName: 'nominate',
+        args: [resolvedAddress],
+      });
+
+      // walletClient.writeContract(request);
+      // if (write) {
+      //   console.log('write exists');
+      // } else {
+      //   console.log('write doesnt exist');
+      // }
+      // write && write();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   function handleShareMintLink(walletAddress: string) {
@@ -177,7 +201,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
           </div>
         )}
 
-        <h1 className="text-2xl mt-8 mb-4">{name ? name : "..."}</h1>
+        <h1 className="text-2xl mt-8 mb-4">{name ? name : '...'}</h1>
 
         <div className="w-full flex flex-row mt-2 mb-6">
           <input
@@ -212,7 +236,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
               <div className="flex items-center py-2" key={nominee.address}>
                 <p
                   className={`flex-grow ${
-                    canMemberJoinGroup(nominee.address) ? "text-green-500" : ""
+                    canMemberJoinGroup(nominee.address) ? 'text-green-500' : ''
                   }`}
                 >
                   {nominee.address}
@@ -225,9 +249,9 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
                     type="submit"
                     onClick={() => {
                       navigator.clipboard.writeText(
-                        window.location.href + "/mint"
+                        window.location.href + '/mint'
                       );
-                      toast.success("Copied!");
+                      toast.success('Copied!');
                     }}
                     className="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
                     disabled={!address || loading || nominating}
@@ -248,7 +272,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
         )}
 
         <div className="mt-6">
-          <h2 className="text-lg">Members ({members ? members.length : ""})</h2>
+          <h2 className="text-lg">Members ({members ? members.length : ''})</h2>
           {members &&
             members.map((member) => (
               <div className="flex py-2" key={member.tokenId.toString()}>
@@ -265,8 +289,8 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
             <button
               type="submit"
               onClick={() => {
-                navigator.clipboard.writeText(window.location.href + "/mint");
-                toast.success("Copied!");
+                navigator.clipboard.writeText(window.location.href + '/mint');
+                toast.success('Copied!');
               }}
               className="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
               disabled={!address || loading || nominating}

@@ -46,10 +46,14 @@ export const checkOrSwitchToActiveChain = async (
   console.log(walletClient.chain?.name);
   console.log(activeChain.name);
   if (walletClient.chain?.id !== activeChain.id) {
+    console.log(activeChain.id);
     try {
       await walletClient.switchChain(activeChain);
       return true;
     } catch (error) {
+      // @ts-ignore
+      console.log(error.code);
+
       return false;
     }
   } else {
