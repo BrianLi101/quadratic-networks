@@ -47,10 +47,11 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   const [name, setName] = useState<string>();
 
   useEffect(() => {
-    loadContractData();
     if (typeof window === 'object') {
-      console.log('setting active chain');
+      // chain configuration won't work until window has loaded
       setActiveChainFromURL(window.location.href);
+      // must happen after window has loaded because of the chain configuration
+      loadContractData();
     }
   }, []);
 
@@ -112,9 +113,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
 
     const name = (await contract.read.name()) as string;
     setName(name);
-    console.log(name);
 
-    setLoading(false);
     setLoading(false);
   };
 
@@ -188,13 +187,12 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
 
             {nominees.map((nominee) => (
               <div className="flex items-center py-2" key={nominee.address}>
-                <p
+                <ReadableAddressRow
+                  address={nominee.address}
                   className={`flex-grow ${
                     canMemberJoinGroup(nominee.address) ? 'text-green-500' : ''
                   }`}
-                >
-                  <ReadableAddressRow address={nominee.address} />
-                </p>
+                />
                 <p className="mr-6">
                   {nominee.nominators.length} / {threshold} required
                 </p>

@@ -3,8 +3,12 @@ import { useEffect, useState } from 'react';
 
 interface ReadableAddressRowProps {
   address: string;
+  className?: string;
 }
-export const ReadableAddressRow = ({ address }: ReadableAddressRowProps) => {
+export const ReadableAddressRow = ({
+  address,
+  className,
+}: ReadableAddressRowProps) => {
   const [text, setText] = useState<string>(address);
   useEffect(() => {
     if (address) {
@@ -13,5 +17,5 @@ export const ReadableAddressRow = ({ address }: ReadableAddressRowProps) => {
       });
     }
   }, [address]);
-  return <p>{text}</p>;
+  return <p className={className}>{text}</p>;
 };
