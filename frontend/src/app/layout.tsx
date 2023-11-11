@@ -1,9 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { WagmiConfig, createConfig, configureChains, mainnet } from 'wagmi';
 import { publicProvider } from 'wagmi/providers/public';
-import { alchemyProvider } from 'wagmi/providers/alchemy';
-import { goerli } from 'viem/chains';
 import './globals.css';
 import Header from './components/header';
 import { Web3Modal } from '@/context/Web3Modal';

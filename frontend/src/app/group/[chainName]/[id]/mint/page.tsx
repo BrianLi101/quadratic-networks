@@ -16,7 +16,6 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
 import { createPublicClient, http, getContractAddress } from 'viem';
-import { goerli } from 'viem/chains';
 
 import { getContract } from 'viem';
 import LoadingIndicator from '@/components/LoadingIndicator';
