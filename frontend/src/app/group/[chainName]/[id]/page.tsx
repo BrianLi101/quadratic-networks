@@ -2,7 +2,6 @@
 // need to be client component
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import WagmiProvider from '@/components/WagmiProvider';
@@ -40,7 +39,6 @@ interface Membership {
 }
 
 function Group({ params }: { params: { chainName: string; id: string } }) {
-  const [group, setGroup] = useState({} as any);
   const { address, isConnecting, isDisconnected, isConnected } = useAccount();
   const [members, setMembers] = useState<Membership[]>();
   const [nominees, setNominees] = useState<Nominee[]>();
@@ -153,7 +151,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
           {params.chainName} : {params.id}
         </h1>
 
-        <h1 className="text-2xl mt-8 mb-4">{group?.name}</h1>
+        {/* <h1 className="text-2xl mt-8 mb-4">{group?.name}</h1> */}
 
         <div className="w-full flex flex-row mt-2 mb-6">
           <input
@@ -194,12 +192,19 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
                 </p>
                 <p className="mr-6">{nominee.nominators.length}</p>
                 {nominee.nominators.length >= threshold ? (
-                  <Link
-                    href={`/mint/${params.id}`}
-                    className="bg-blue-200 hover:bg-blue-300 text-blue-800 font-bold py-2 px-4 rounded inline-flex items-center"
+                  <button
+                    type="submit"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        window.location.href + '/mint'
+                      );
+                      toast.success('Copied!');
+                    }}
+                    className="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
+                    disabled={!address || loading || nominating}
                   >
-                    <p>Share mint link</p>
-                  </Link>
+                    Copy Mint Link
+                  </button>
                 ) : (
                   <button
                     onClick={() => handleNominationClick()}
