@@ -11,7 +11,7 @@ import {
 } from 'wagmi';
 import WagmiProvider from '@/components/WagmiProvider';
 import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
 import { createPublicClient, http, getContractAddress } from 'viem';
@@ -27,24 +27,28 @@ export const publicClient = createPublicClient({
 function MintPage({ params }: { params: { id: string; chainName: string } }) {
   const { address, isConnecting, isDisconnected, isConnected } = useAccount();
   const [minted, setMinted] = useState<boolean>();
+  const [minting, setMinting] = useState<boolean>();
   const { config } = usePrepareContractWrite({
     address: params.id as `0x${string}`,
     abi,
     functionName: 'mint',
   });
-  const {
-    write,
-    isLoading: minting,
-    data: mintHash,
-  } = useContractWrite(config);
+  const { write, isLoading, data: mintHash } = useContractWrite(config);
 
+  useEffect(() => {
+    if (mintHash) {
+      awaitNominationTransaction(mintHash.hash);
+    }
+  }, [mintHash]);
   const awaitNominationTransaction = async (hash: `0x${string}`) => {
+    setMinting(true);
     const transaction = await publicClient.waitForTransactionReceipt({
       hash,
     });
     console.log('transaction finished: ', transaction);
-    toast.success('Nominated!');
+    toast.success('Minted!');
     setMinted(true);
+    setMinting(false);
   };
   const checkMintPermission = async () => {
     const contract = getContract({
@@ -73,8 +77,9 @@ function MintPage({ params }: { params: { id: string; chainName: string } }) {
             write && write();
           }}
           className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
+          disabled={!address || minting}
         >
-          Mint
+          Mint {minting && <LoadingIndicator />}
         </button>
       </div>
     </main>

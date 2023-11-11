@@ -15,6 +15,7 @@ export const publicClient = createPublicClient({
   chain: goerli,
   transport: http(process.env.NEXT_PUBLIC_ALCHEMY_URL_GOERLI),
 });
+
 function NewGroup() {
   const router = useRouter();
   const { address, isConnecting, isDisconnected, isConnected } = useAccount();
@@ -97,8 +98,7 @@ function NewGroup() {
             />
           </div> */}
         </form>
-        <h1>deploying: {deploying}</h1>
-        <h1>address: {JSON.stringify(address)}</h1>
+
         <button
           type="submit"
           onClick={handleSubmit}

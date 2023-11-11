@@ -61,13 +61,13 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
 
   useEffect(() => {
     if (nominationHash) {
-      setNominating(true);
       console.log('got nomination hash', nominationHash);
       awaitNominationTransaction(nominationHash.hash);
     }
   }, [nominationHash]);
 
   const awaitNominationTransaction = async (hash: `0x${string}`) => {
+    setNominating(true);
     const transaction = await publicClient.waitForTransactionReceipt({
       hash,
     });
@@ -142,13 +142,14 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-6 lg:p-24">
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
+        {loading && (
+          <div className="w-full h-100 flex justify-center items-center">
+            <LoadingIndicator />
+          </div>
+        )}
         <Link href="/dashboard" className="font-bold">
           Back
         </Link>
-        {loading && <LoadingIndicator />}
-        <h1>
-          {params.chainName} : {params.id}
-        </h1>
 
         {/* <h1 className="text-2xl mt-8 mb-4">{group?.name}</h1> */}
 
@@ -189,7 +190,9 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
                 >
                   {nominee.address}
                 </p>
-                <p className="mr-6">{nominee.nominators.length}</p>
+                <p className="mr-6">
+                  {nominee.nominators.length} / {threshold} required
+                </p>
                 {nominee.nominators.length >= threshold ? (
                   <button
                     type="submit"
