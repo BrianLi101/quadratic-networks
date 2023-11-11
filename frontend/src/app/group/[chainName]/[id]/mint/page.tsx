@@ -23,6 +23,7 @@ import LoadingIndicator from '@/components/LoadingIndicator';
 import {
   getViemClient,
   checkOrSwitchToActiveChain,
+  setActiveChainFromURL,
 } from '@/helpers/chainHelpers';
 
 function MintPage({ params }: { params: { id: string; chainName: string } }) {
@@ -37,6 +38,13 @@ function MintPage({ params }: { params: { id: string; chainName: string } }) {
     functionName: 'mint',
   });
   const { write, isLoading, data: mintHash } = useContractWrite(config);
+
+  useEffect(() => {
+    if (typeof window === 'object') {
+      console.log('setting active chain');
+      setActiveChainFromURL(window.location.href);
+    }
+  }, []);
 
   useEffect(() => {
     if (mintHash) {
