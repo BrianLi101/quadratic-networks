@@ -21,20 +21,10 @@ function NewGroup() {
   const { data: walletClient } = useWalletClient();
   const [deploying, setDeploying] = useState<boolean>(false);
   const [transactionHash, setTransactionHash] = useState<`0x${string}`>();
-  const { data: transaction } = useTransaction({
-    chainId: goerli.id,
-    hash: '0x682c8e29667401530092e9bf45944742a9e639f84c1e0db80cb1ed642d6f35a3',
-  });
 
-  useEffect(() => {
-    if (transaction) {
-      console.log(transaction);
-    }
-  }, [transaction]);
-
-  const getTransaction = async () => {
+  const getTransaction = async (hash: `0x${string}`) => {
     let transaction = await publicClient.getTransaction({
-      hash: '0x682c8e29667401530092e9bf45944742a9e639f84c1e0db80cb1ed642d6f35a3',
+      hash: hash,
     });
     console.log({ transaction });
     let contractAddressData = await getContractAddress({
@@ -45,8 +35,6 @@ function NewGroup() {
     router.push(`/group/${goerli.name}/${contractAddressData}`);
   };
   const handleSubmit = async () => {
-    getTransaction();
-    return;
     console.log('user clicked submit');
     if (!walletClient) return null;
 
@@ -58,7 +46,11 @@ function NewGroup() {
         args: ['Test', 'TEST', [address], 1000],
         chain: goerli,
       });
+      const transaction = await publicClient.waitForTransactionReceipt({
+        hash: hash,
+      });
       setTransactionHash(hash);
+      await getTransaction(hash);
       setDeploying(false);
     } catch (error) {
       console.log(error);
