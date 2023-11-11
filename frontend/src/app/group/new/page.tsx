@@ -1,6 +1,5 @@
 'use client';
 
-
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
@@ -10,6 +9,7 @@ import {
   WalletClient,
 } from 'wagmi';
 import LoadingIndicator from '@/components/LoadingIndicator';
+import toast from 'react-hot-toast';
 
 import WagmiProvider from '@/components/WagmiProvider';
 import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
@@ -25,7 +25,6 @@ import {
   checkOrSwitchToActiveChain,
 } from '@/helpers/chainHelpers';
 
-
 function NewGroup() {
   const router = useRouter();
   const { address, isConnecting, isDisconnected, isConnected } = useAccount();
@@ -34,6 +33,7 @@ function NewGroup() {
   const [transactionHash, setTransactionHash] = useState<`0x${string}`>();
   const [chain, setChain] = useState<Chain>(getActiveChain());
   const [foundingMembers, setFoundingMembers] = useState<string[]>([address!]);
+  const [name, setName] = useState<string>();
 
   const getTransaction = async (hash: `0x${string}`) => {
     let transaction = await getViemClient().getTransaction({
@@ -49,6 +49,10 @@ function NewGroup() {
   };
   const handleSubmit = async () => {
     console.log('user clicked submit');
+    if (!name) {
+      toast.error('Missing group name.');
+      return;
+    }
     if (!walletClient) return null;
 
     if (!(await checkOrSwitchToActiveChain(walletClient))) return;
@@ -58,7 +62,7 @@ function NewGroup() {
       const hash = await walletClient.deployContract({
         abi,
         bytecode: bytecode.bytecode as `0x${string}`,
-        args: ['Test', 'TEST', foundingMembers, 1000],
+        args: [name, name.toUpperCase(), foundingMembers, 1000],
         chain: getActiveChain(),
       });
       const transaction = await getViemClient().waitForTransactionReceipt({
@@ -88,7 +92,7 @@ function NewGroup() {
   };
 
   const handleAddMember = () => {
-    setFoundingMembers([...foundingMembers, ""]);
+    setFoundingMembers([...foundingMembers, '']);
   };
 
   const handleMemberChange = (value: string, index: number) => {
@@ -116,6 +120,10 @@ function NewGroup() {
               name="groupName"
               placeholder="E.g. Secret society"
               required
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+              }}
             />
           </div>
 
@@ -184,16 +192,13 @@ function NewGroup() {
               })}
             </ul>
           </div>
-
         </form>
 
         <button
           type="submit"
           onClick={handleSubmit}
           className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
-
           disabled={!isConnected || deploying}
-
         >
           Create group {deploying && <LoadingIndicator />}
         </button>
