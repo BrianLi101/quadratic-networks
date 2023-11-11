@@ -1,16 +1,16 @@
 import { WagmiConfig, createConfig, configureChains, mainnet } from 'wagmi';
 import { publicProvider } from 'wagmi/providers/public';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
-import { goerli } from 'viem/chains';
+import { goerli, optimism } from 'viem/chains';
 
-const apiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY_GOERLI;
+const apiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY_OPTIMISM;
 console.log({ apiKey });
 if (!apiKey) {
   throw new Error('ALCHEMY_API_KEY_GOERLI is not defined in the environment.');
 }
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [goerli],
+  [optimism],
   [alchemyProvider({ apiKey })]
 );
 
