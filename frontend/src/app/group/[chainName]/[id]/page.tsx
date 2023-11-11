@@ -1,23 +1,31 @@
 // TODO: Abstract client component into separate file so page does not
 // need to be client component
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import WagmiProvider from '@/components/WagmiProvider';
-import toast from 'react-hot-toast';
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import WagmiProvider from "@/components/WagmiProvider";
+import toast from "react-hot-toast";
 import {
   useContractReads,
   usePrepareContractWrite,
   useContractWrite,
   useAccount,
   useWaitForTransaction,
-} from 'wagmi';
-import { createPublicClient, http, getContractAddress } from 'viem';
-import { goerli } from 'viem/chains';
-import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
-import { getContract } from 'viem';
-import LoadingIndicator from '@/components/LoadingIndicator';
+} from "wagmi";
+import { createPublicClient, http, getContractAddress } from "viem";
+import { goerli } from "viem/chains";
+import abi from "@/contracts/QuadraticNetworksNFT/abi.json";
+import { getContract } from "viem";
+import LoadingIndicator from "@/components/LoadingIndicator";
+
+export const shortenAddress = (address: string) => {
+  return `${address.slice(0, 6)}...${address.slice(
+    address.length - 4,
+    address.length
+  )}`;
+};
+
 export const publicClient = createPublicClient({
   chain: goerli,
   transport: http(process.env.NEXT_PUBLIC_ALCHEMY_URL_GOERLI),
@@ -50,7 +58,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   const { config } = usePrepareContractWrite({
     address: params.id as `0x${string}`,
     abi,
-    functionName: 'nominate',
+    functionName: "nominate",
     args: [nomineeAddress],
   });
   const { write, isLoading, data: nominationHash } = useContractWrite(config);
@@ -61,7 +69,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
 
   useEffect(() => {
     if (nominationHash) {
-      console.log('got nomination hash', nominationHash);
+      console.log("got nomination hash", nominationHash);
       awaitNominationTransaction(nominationHash.hash);
     }
   }, [nominationHash]);
@@ -71,8 +79,8 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     const transaction = await publicClient.waitForTransactionReceipt({
       hash,
     });
-    console.log('transaction finished: ', transaction);
-    toast.success('Nominated!');
+    console.log("transaction finished: ", transaction);
+    toast.success("Nominated!");
     setNominating(false);
     loadContractData();
   };
@@ -91,7 +99,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
       (await contract.read.getAllNominations()) as Nomination[];
     const nominationMap: { [id: Address]: Nominee } = {};
     allNominations.forEach(({ nominator, nominee }) => {
-      if (nominee === '0x0000000000000000000000000000000000000000') return;
+      if (nominee === "0x0000000000000000000000000000000000000000") return;
       let existingNominee = nominationMap[nominee];
       if (existingNominee) {
         nominationMap[nominee] = {
@@ -185,7 +193,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
               <div className="flex items-center py-2" key={nominee.address}>
                 <p
                   className={`flex-grow ${
-                    canMemberJoinGroup(nominee.address) ? 'text-green-500' : ''
+                    canMemberJoinGroup(nominee.address) ? "text-green-500" : ""
                   }`}
                 >
                   {nominee.address}
@@ -198,9 +206,9 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
                     type="submit"
                     onClick={() => {
                       navigator.clipboard.writeText(
-                        window.location.href + '/mint'
+                        window.location.href + "/mint"
                       );
-                      toast.success('Copied!');
+                      toast.success("Copied!");
                     }}
                     className="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
                     disabled={!address || loading || nominating}
@@ -221,11 +229,12 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
         )}
 
         <div className="mt-6">
-          <h2 className="text-lg">Members ({members ? members.length : ''})</h2>
+          <h2 className="text-lg">Members ({members ? members.length : ""})</h2>
           {members &&
             members.map((member) => (
               <div className="flex py-2" key={member.tokenId.toString()}>
-                <p>{member.tokenId.toString()}</p>:<p>{member.owner}</p>
+                <p>{member.tokenId.toString()}</p>:
+                <p>{shortenAddress(member.owner)}</p>
               </div>
             ))}
         </div>

@@ -1,16 +1,17 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useAccount, useWalletClient, useTransaction } from 'wagmi';
-import LoadingIndicator from '@/components/LoadingIndicator';
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useAccount, useWalletClient, useTransaction } from "wagmi";
+import LoadingIndicator from "@/components/LoadingIndicator";
 
-import WagmiProvider from '@/components/WagmiProvider';
-import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
-import bytecode from '@/contracts/QuadraticNetworksNFT/bytecode.json';
-import { goerli } from 'viem/chains';
-import { createPublicClient, http, getContractAddress } from 'viem';
-import { mainnet } from 'viem/chains';
+import WagmiProvider from "@/components/WagmiProvider";
+import abi from "@/contracts/QuadraticNetworksNFT/abi.json";
+import bytecode from "@/contracts/QuadraticNetworksNFT/bytecode.json";
+import { goerli } from "viem/chains";
+import { createPublicClient, http, getContractAddress } from "viem";
+import { mainnet } from "viem/chains";
+
 export const publicClient = createPublicClient({
   chain: goerli,
   transport: http(process.env.NEXT_PUBLIC_ALCHEMY_URL_GOERLI),
@@ -36,7 +37,7 @@ function NewGroup() {
     router.push(`/group/${goerli.name}/${contractAddressData}`);
   };
   const handleSubmit = async () => {
-    console.log('user clicked submit');
+    console.log("user clicked submit");
     if (!walletClient) return null;
 
     setDeploying(true);
@@ -44,7 +45,7 @@ function NewGroup() {
       const hash = await walletClient.deployContract({
         abi,
         bytecode: bytecode.bytecode as `0x${string}`,
-        args: ['Test', 'TEST', [address], 1000],
+        args: ["Test", "TEST", [address], 1000],
         chain: goerli,
       });
       const transaction = await publicClient.waitForTransactionReceipt({
@@ -57,19 +58,6 @@ function NewGroup() {
       console.log(error);
     }
     return;
-    try {
-      const response = true;
-      const id = '1';
-
-      if (response) {
-        console.log('success submit');
-
-        // TODO: Route to group page
-        // router.push(`/group/${id}`);
-      }
-    } catch (error) {
-      console.log(error);
-    }
   };
 
   return (
@@ -103,7 +91,7 @@ function NewGroup() {
           type="submit"
           onClick={handleSubmit}
           className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
-          disabled={!isConnected || deploying}
+          // disabled={(!isConnected || deploying) ?? false}
         >
           Create group {deploying && <LoadingIndicator />}
         </button>
