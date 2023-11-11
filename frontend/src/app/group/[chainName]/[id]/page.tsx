@@ -43,6 +43,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   const [members, setMembers] = useState<Membership[]>();
   const [nominees, setNominees] = useState<Nominee[]>();
   const [loading, setLoading] = useState<boolean>(false);
+  const [nominating, setNominating] = useState<boolean>(false);
   const [threshold, setThreshold] = useState<number>(1);
   const [nomineeAddress, setNomineeAddress] = useState<string>();
 
@@ -52,11 +53,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     functionName: 'nominate',
     args: [nomineeAddress],
   });
-  const {
-    write,
-    isLoading: nominating,
-    data: nominationHash,
-  } = useContractWrite(config);
+  const { write, isLoading, data: nominationHash } = useContractWrite(config);
 
   useEffect(() => {
     loadContractData();
@@ -64,6 +61,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
 
   useEffect(() => {
     if (nominationHash) {
+      setNominating(true);
       console.log('got nomination hash', nominationHash);
       awaitNominationTransaction(nominationHash.hash);
     }
@@ -75,6 +73,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     });
     console.log('transaction finished: ', transaction);
     toast.success('Nominated!');
+    setNominating(false);
     loadContractData();
   };
 
@@ -172,7 +171,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
             className="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
             disabled={!address || loading || nominating}
           >
-            Nominate
+            Nominate {nominating && <LoadingIndicator />}
           </button>
         </div>
 
