@@ -18,10 +18,10 @@ export const getViemClient = () => {
       apiKey = process.env.NEXT_PUBLIC_ALCHEMY_URL_GOERLI;
       break;
     case base:
-      apiKey = process.env.NEXT_PUBLIC_BASE_URL_GOERLI;
+      apiKey = process.env.NEXT_PUBLIC_ALCHEMY_URL_BASE;
       break;
     case optimism:
-      apiKey = process.env.NEXT_PUBLIC_OPTIMISM_URL_GOERLI;
+      apiKey = process.env.NEXT_PUBLIC_ALCHEMY_URL_OPTIMISM;
       break;
   }
 
@@ -51,5 +51,26 @@ export const checkOrSwitchToActiveChain = async (
     }
   } else {
     return true;
+  }
+};
+
+export const setActiveChainFromURL = (url: string) => {
+  const regex = /\/group\/(\w+)\//;
+  const match = url.match(regex);
+  if (match) {
+    const chainName = match[1];
+    switch (activeChain) {
+      case goerli:
+        activeChain = goerli;
+        break;
+      case base:
+        activeChain = base;
+        break;
+      case optimism:
+        activeChain = optimism;
+        break;
+    }
+  } else {
+    console.log('No match found.');
   }
 };
