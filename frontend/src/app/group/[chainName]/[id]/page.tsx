@@ -6,11 +6,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import WagmiProvider from '@/components/WagmiProvider';
+import toast from 'react-hot-toast';
 import {
   useContractReads,
   usePrepareContractWrite,
   useContractWrite,
   useAccount,
+  useWaitForTransaction,
 } from 'wagmi';
 import { createPublicClient, http, getContractAddress } from 'viem';
 import { goerli } from 'viem/chains';
@@ -21,61 +23,6 @@ export const publicClient = createPublicClient({
   chain: goerli,
   transport: http(process.env.NEXT_PUBLIC_ALCHEMY_URL_GOERLI),
 });
-
-const MOCK_GROUPS = [
-  {
-    id: '1',
-    name: 'Quadratic Lands',
-    image: 'https://picsum.photos/200',
-    maxGroupSize: 100,
-    chain: 'Polygon',
-  },
-  {
-    id: '2',
-    name: 'Cold Plunge DAO',
-    image: 'https://picsum.photos/200',
-    maxGroupSize: 100,
-    chain: 'Base',
-  },
-];
-
-const MOCK_MEMBERS = [
-  {
-    id: '1',
-    // nominator: "alice.eth",
-    walletAddress: 'alice.eth',
-    // image: "https://picsum.photos/200",
-  },
-  {
-    id: '2',
-    // nominator: "charles.eth",
-    walletAddress: '0x123',
-    // image: "https://picsum.photos/200",
-  },
-  {
-    id: '3',
-    // nominator: "charles.eth",
-    walletAddress: '0x456',
-    // image: "https://picsum.photos/200",
-  },
-];
-
-const MOCK_NOMINEES = [
-  {
-    id: '1',
-    nominator: 'alice.eth',
-    walletAddress: 'bob.eth',
-    nominations: 1,
-    // image: "https://picsum.photos/200",
-  },
-  {
-    id: '2',
-    nominator: 'charles.eth',
-    walletAddress: '0x123',
-    nominations: 1,
-    // image: "https://picsum.photos/200",
-  },
-];
 
 type Address = `0x${string}`;
 interface Nominee {
@@ -98,13 +45,8 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   const [members, setMembers] = useState<Membership[]>();
   const [nominees, setNominees] = useState<Nominee[]>();
   const [loading, setLoading] = useState<boolean>(false);
-  const [nominating, setNominating] = useState<boolean>(false);
   const [threshold, setThreshold] = useState<number>(1);
   const [nomineeAddress, setNomineeAddress] = useState<string>();
-  const quadraticContract = {
-    address: params.id,
-    abi: abi,
-  };
 
   const { config } = usePrepareContractWrite({
     address: params.id as `0x${string}`,
@@ -112,16 +54,31 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     functionName: 'nominate',
     args: [nomineeAddress],
   });
-  const { write } = useContractWrite(config);
+  const {
+    write,
+    isLoading: nominating,
+    data: nominationHash,
+  } = useContractWrite(config);
 
   useEffect(() => {
     loadContractData();
   }, []);
-  // TODO: Fetch group data from the server
+
   useEffect(() => {
-    const group = MOCK_GROUPS.find((group: any) => group.id === params.id);
-    setGroup({ ...group, nominees: MOCK_NOMINEES, members: MOCK_MEMBERS });
-  }, [params.id]);
+    if (nominationHash) {
+      console.log('got nomination hash', nominationHash);
+      awaitNominationTransaction(nominationHash.hash);
+    }
+  }, [nominationHash]);
+
+  const awaitNominationTransaction = async (hash: `0x${string}`) => {
+    const transaction = await publicClient.waitForTransactionReceipt({
+      hash,
+    });
+    console.log('transaction finished: ', transaction);
+    toast.success('Nominated!');
+    loadContractData();
+  };
 
   const loadContractData = async () => {
     setLoading(true);
@@ -166,34 +123,19 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   };
 
   function canMemberJoinGroup(walletAddress: string): boolean {
-    const nominee = group.nominees.find(
-      (nom: any) => nom.walletAddress === walletAddress
-    );
-    return nominee !== undefined && nominee.nominations >= threshold;
+    if (!nominees) return false;
+    const nominee = nominees.find((nom) => nom.address === walletAddress);
+    return nominee !== undefined && nominee.nominators.length >= threshold;
   }
 
   function handleNominationClick() {
     if (!nomineeAddress) return;
     console.log(`Nominate clicked for address: ${nomineeAddress}`);
-    setNominating(true);
 
     try {
       write && write();
       loadContractData();
-    } catch (error) {
-      setNominating(false);
-    }
-
-    // setGroup((prevGroup: any) => {
-    //   const updatedNominees = prevGroup.nominees.map((nominee: any) => {
-    //     if (nominee.walletAddress === walletAddress) {
-    //       return { ...nominee, nominations: nominee.nominations + 1 };
-    //     }
-    //     return nominee;
-    //   });
-
-    //   return { ...prevGroup, nominees: updatedNominees };
-    // });
+    } catch (error) {}
   }
 
   function handleShareMintLink(walletAddress: string) {
@@ -252,12 +194,6 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
                 </p>
                 <p className="mr-6">{nominee.nominators.length}</p>
                 {nominee.nominators.length >= threshold ? (
-                  // <button
-                  //   onClick={() => handleShareMintLink(nominee.walletAddress)}
-                  //   className="bg-blue-200 hover:bg-blue-300 text-blue-800 font-bold py-2 px-4 rounded inline-flex items-center"
-                  // >
-                  //   Share mint link
-                  // </button>
                   <Link
                     href={`/mint/${params.id}`}
                     className="bg-blue-200 hover:bg-blue-300 text-blue-800 font-bold py-2 px-4 rounded inline-flex items-center"
@@ -266,10 +202,10 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
                   </Link>
                 ) : (
                   <button
-                    onClick={() => handleNominationClick(nominee.address)}
+                    onClick={() => handleNominationClick()}
                     className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
                   >
-                    Nominate
+                    Nominate {nominating && <LoadingIndicator />}
                   </button>
                 )}
               </div>
