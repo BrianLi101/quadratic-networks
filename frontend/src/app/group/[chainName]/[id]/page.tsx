@@ -1,27 +1,27 @@
 // TODO: Abstract client component into separate file so page does not
 // need to be client component
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import WagmiProvider from '@/components/WagmiProvider';
-import toast from 'react-hot-toast';
-import QRCode from 'react-qr-code';
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import WagmiProvider from "@/components/WagmiProvider";
+import toast from "react-hot-toast";
+import QRCode from "react-qr-code";
 import {
   useContractReads,
   usePrepareContractWrite,
   useContractWrite,
   useAccount,
   useWalletClient,
-} from 'wagmi';
-import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
-import { getContract } from 'viem';
-import LoadingIndicator from '@/components/LoadingIndicator';
+} from "wagmi";
+import abi from "@/contracts/QuadraticNetworksNFT/abi.json";
+import { getContract } from "viem";
+import LoadingIndicator from "@/components/LoadingIndicator";
 
 import {
   getViemClient,
   checkOrSwitchToActiveChain,
-} from '@/helpers/chainHelpers';
+} from "@/helpers/chainHelpers";
 
 type Address = `0x${string}`;
 interface Nominee {
@@ -49,11 +49,17 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   const [nomineeAddress, setNomineeAddress] = useState<string>();
   const [name, setName] = useState<string>();
 
+  const getAddressFromEns = async (ens: string | undefined) => {
+    if (!ens) return;
+    var address = await getViemClient().getEnsAddress({ name: ens });
+    return address;
+  };
+
   const { config } = usePrepareContractWrite({
     address: params.id as `0x${string}`,
     abi,
-    functionName: 'nominate',
-    args: [nomineeAddress],
+    functionName: "nominate",
+    args: [getAddressFromEns(nomineeAddress)],
   });
   const { write, isLoading, data: nominationHash } = useContractWrite(config);
 
@@ -63,7 +69,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
 
   useEffect(() => {
     if (nominationHash) {
-      console.log('got nomination hash', nominationHash);
+      console.log("got nomination hash", nominationHash);
 
       awaitNominationTransaction(nominationHash.hash);
     }
@@ -75,8 +81,8 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     const transaction = await getViemClient().waitForTransactionReceipt({
       hash,
     });
-    console.log('transaction finished: ', transaction);
-    toast.success('Nominated!');
+    console.log("transaction finished: ", transaction);
+    toast.success("Nominated!");
 
     setNominating(false);
     loadContractData();
@@ -96,7 +102,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
       (await contract.read.getAllNominations()) as Nomination[];
     const nominationMap: { [id: Address]: Nominee } = {};
     allNominations.map(({ nominee, nominator }) => {
-      if (nominee === '0x0000000000000000000000000000000000000000') return;
+      if (nominee === "0x0000000000000000000000000000000000000000") return;
 
       let existingNominee = nominationMap[nominee];
       if (existingNominee) {
@@ -142,6 +148,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   const handleNominationClick = async () => {
     if (!nomineeAddress || !walletClient) return;
     console.log(`Nominate clicked for address: ${nomineeAddress}`);
+
     if (!(await checkOrSwitchToActiveChain(walletClient))) return;
 
     try {
@@ -163,7 +170,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
           </div>
         )}
 
-        <h1 className="text-2xl mt-8 mb-4">{name ? name : '...'}</h1>
+        <h1 className="text-2xl mt-8 mb-4">{name ? name : "..."}</h1>
 
         <div className="w-full flex flex-row mt-2 mb-6">
           <input
@@ -176,6 +183,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
             value={nomineeAddress}
             onChange={(e) => {
               setNomineeAddress(e.target.value);
+              // setNomineeAddress(e.target.value);
             }}
           />
           <button
@@ -197,7 +205,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
               <div className="flex items-center py-2" key={nominee.address}>
                 <p
                   className={`flex-grow ${
-                    canMemberJoinGroup(nominee.address) ? 'text-green-500' : ''
+                    canMemberJoinGroup(nominee.address) ? "text-green-500" : ""
                   }`}
                 >
                   {nominee.address}
@@ -210,9 +218,9 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
                     type="submit"
                     onClick={() => {
                       navigator.clipboard.writeText(
-                        window.location.href + '/mint'
+                        window.location.href + "/mint"
                       );
-                      toast.success('Copied!');
+                      toast.success("Copied!");
                     }}
                     className="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
                     disabled={!address || loading || nominating}
@@ -233,7 +241,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
         )}
 
         <div className="mt-6">
-          <h2 className="text-lg">Members ({members ? members.length : ''})</h2>
+          <h2 className="text-lg">Members ({members ? members.length : ""})</h2>
           {members &&
             members.map((member) => (
               <div className="flex py-2" key={member.tokenId.toString()}>
@@ -250,8 +258,8 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
             <button
               type="submit"
               onClick={() => {
-                navigator.clipboard.writeText(window.location.href + '/mint');
-                toast.success('Copied!');
+                navigator.clipboard.writeText(window.location.href + "/mint");
+                toast.success("Copied!");
               }}
               className="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
               disabled={!address || loading || nominating}
