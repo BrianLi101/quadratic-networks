@@ -47,6 +47,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   const [nominating, setNominating] = useState<boolean>(false);
   const [threshold, setThreshold] = useState<number>(1);
   const [nomineeAddress, setNomineeAddress] = useState<string>();
+  const [name, setName] = useState<string>();
 
   const { config } = usePrepareContractWrite({
     address: params.id as `0x${string}`,
@@ -123,6 +124,12 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     })) as BigInt;
     setThreshold(parseInt(threshold.toString()));
     console.log(threshold.toString());
+
+    const name = (await contract.read.name()) as string;
+    setName(name);
+    console.log(name);
+
+    setLoading(false);
     setLoading(false);
   };
 
@@ -155,11 +162,8 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
             <LoadingIndicator />
           </div>
         )}
-        <Link href="/dashboard" className="font-bold">
-          Back
-        </Link>
 
-        {/* <h1 className="text-2xl mt-8 mb-4">{group?.name}</h1> */}
+        <h1 className="text-2xl mt-8 mb-4">{name ? name : '...'}</h1>
 
         <div className="w-full flex flex-row mt-2 mb-6">
           <input

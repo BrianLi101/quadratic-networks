@@ -4,6 +4,8 @@ import { goerli, base, optimism } from 'viem/chains';
 import { createPublicClient, http, getContractAddress } from 'viem';
 import { Client } from 'viem';
 import { WalletClient } from 'wagmi';
+import { alchemyProvider } from 'wagmi/providers/alchemy';
+
 let activeChain: Chain = SUPPORTED_CHAINS[0];
 
 export const getActiveChain = () => activeChain;
@@ -12,6 +14,7 @@ export const setActiveChain = (chain: Chain) => {
 };
 
 export const getViemClient = () => {
+  console.log('getViemClient chain is :', activeChain);
   let apiKey: string | undefined;
   switch (activeChain) {
     case goerli:
@@ -73,4 +76,26 @@ export const setActiveChainFromURL = (url: string) => {
   } else {
     console.log('No match found.');
   }
+};
+
+export const getWagmiAlchemyClient = (chain: Chain) => {
+  console.log('getWagmiAlchemyClient chain is :', chain);
+  let apiKey: string | undefined;
+  switch (chain) {
+    case goerli:
+      apiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY_GOERLI;
+      break;
+    case base:
+      apiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY_BASE;
+      break;
+    case optimism:
+      apiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY_OPTIMISM;
+      break;
+  }
+
+  if (!apiKey) {
+    throw new Error('No API key found for active chain');
+  }
+
+  return alchemyProvider({ apiKey });
 };
