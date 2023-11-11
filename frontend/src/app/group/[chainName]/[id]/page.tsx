@@ -50,9 +50,16 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   const [name, setName] = useState<string>();
 
   const getAddressFromEns = async (ens: string | undefined) => {
-    if (!ens) return;
-    var address = await getViemClient().getEnsAddress({ name: ens });
-    return address;
+    try {
+      if (!ens) return;
+      var address = await getViemClient().getEnsAddress({ name: ens });
+      // Return original ens if no address found
+      if (!address) return ens;
+      return address;
+    } catch (error) {
+      console.log(error);
+      return ens;
+    }
   };
 
   const { config } = usePrepareContractWrite({
