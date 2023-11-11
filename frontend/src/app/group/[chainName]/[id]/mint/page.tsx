@@ -61,6 +61,7 @@ function MintPage({ params }: { params: { id: string; chainName: string } }) {
       publicClient: getViemClient(),
     });
 
+    // @ts-ignore
     return await contract.read.checkMintPermission({ args: [address] });
   };
 

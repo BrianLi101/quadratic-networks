@@ -118,6 +118,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     console.log(allTokens);
 
     const threshold = (await contract.read.getNominationThreshold({
+      // @ts-ignore
       args: [totalSupply],
     })) as BigInt;
     setThreshold(parseInt(threshold.toString()));
@@ -241,7 +242,18 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
           <input type="checkbox" />
           <div className="collapse-title text-lg">Show Mint QR ⬇️</div>
           <div className="collapse-content">
-            <QRCode value={window.location.href} />
+            <QRCode value={window?.location.href} />
+            <button
+              type="submit"
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href + '/mint');
+                toast.success('Copied!');
+              }}
+              className="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
+              disabled={!address || loading || nominating}
+            >
+              Copy Mint Link
+            </button>
           </div>
         </div>
       </div>
