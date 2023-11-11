@@ -16,13 +16,13 @@ import {
 } from 'wagmi';
 import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
 import { getContract } from 'viem';
-import { normalize } from 'viem/ens';
 import LoadingIndicator from '@/components/LoadingIndicator';
 
 import {
   getViemClient,
   checkOrSwitchToActiveChain,
   setActiveChainFromURL,
+  getActiveChain,
 } from '@/helpers/chainHelpers';
 import { resolveENSToAddress } from '@/helpers/ens';
 
@@ -49,16 +49,8 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   const [loading, setLoading] = useState<boolean>(false);
   const [nominating, setNominating] = useState<boolean>(false);
   const [threshold, setThreshold] = useState<number>(1);
-  const [nomineeAddress, setNomineeAddress] = useState<string>();
+  const [nomineeAddress, setNomineeAddress] = useState<string>('');
   const [name, setName] = useState<string>();
-
-  const { config } = usePrepareContractWrite({
-    address: params.id as `0x${string}`,
-    abi,
-    functionName: 'nominate',
-    args: [nomineeAddress],
-  });
-  const { write, isLoading, data: nominationHash } = useContractWrite(config);
 
   useEffect(() => {
     loadContractData();
@@ -67,14 +59,6 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
       setActiveChainFromURL(window.location.href);
     }
   }, []);
-
-  useEffect(() => {
-    if (nominationHash) {
-      console.log('got nomination hash', nominationHash);
-
-      awaitNominationTransaction(nominationHash.hash);
-    }
-  }, [nominationHash]);
 
   const awaitNominationTransaction = async (hash: `0x${string}`) => {
     setNominating(true);
@@ -159,23 +143,15 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
         abi,
         functionName: 'nominate',
         args: [resolvedAddress],
+        chain: getActiveChain(),
       });
 
-      walletClient.writeContract(request);
-      // if (write) {
-      //   console.log('write exists');
-      // } else {
-      //   console.log('write doesnt exist');
-      // }
-      // write && write();
+      let hash = await walletClient.writeContract(request);
+      awaitNominationTransaction(hash);
     } catch (error) {
       console.log(error);
     }
   };
-
-  function handleShareMintLink(walletAddress: string) {
-    console.log(`Share mint link clicked for address: ${walletAddress}`);
-  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-6 lg:p-24">
@@ -199,7 +175,6 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
             value={nomineeAddress}
             onChange={(e) => {
               setNomineeAddress(e.target.value);
-              // setNomineeAddress(e.target.value);
             }}
           />
           <button
