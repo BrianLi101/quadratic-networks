@@ -1,11 +1,12 @@
 // TODO: Abstract client component into separate file so page does not
 // need to be client component
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import WagmiProvider from '@/components/WagmiProvider';
-import toast from 'react-hot-toast';
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import WagmiProvider from "@/components/WagmiProvider";
+import toast from "react-hot-toast";
+
 import {
   useContractReads,
   usePrepareContractWrite,
@@ -50,7 +51,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
   const { config } = usePrepareContractWrite({
     address: params.id as `0x${string}`,
     abi,
-    functionName: 'nominate',
+    functionName: "nominate",
     args: [nomineeAddress],
   });
   const { write, isLoading, data: nominationHash } = useContractWrite(config);
@@ -61,18 +62,22 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
 
   useEffect(() => {
     if (nominationHash) {
+
       console.log('got nomination hash', nominationHash);
+
       awaitNominationTransaction(nominationHash.hash);
     }
   }, [nominationHash]);
 
   const awaitNominationTransaction = async (hash: `0x${string}`) => {
     setNominating(true);
+
     const transaction = await getViemClient().waitForTransactionReceipt({
       hash,
     });
     console.log('transaction finished: ', transaction);
     toast.success('Nominated!');
+
     setNominating(false);
     loadContractData();
   };
@@ -83,6 +88,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
       address: params.id as `0x${string}`,
       abi,
       publicClient: getViemClient(),
+
     });
     const totalSupply = (await contract.read.totalSupply()) as BigInt;
     console.log(totalSupply.toString());
@@ -90,8 +96,9 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     const allNominations =
       (await contract.read.getAllNominations()) as Nomination[];
     const nominationMap: { [id: Address]: Nominee } = {};
-    allNominations.forEach(({ nominator, nominee }) => {
+
       if (nominee === '0x0000000000000000000000000000000000000000') return;
+
       let existingNominee = nominationMap[nominee];
       if (existingNominee) {
         nominationMap[nominee] = {
@@ -125,15 +132,19 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     return nominee !== undefined && nominee.nominators.length >= threshold;
   }
 
+
   const handleNominationClick = async () => {
     if (!nomineeAddress || !walletClient) return;
     console.log(`Nominate clicked for address: ${nomineeAddress}`);
     if (!(await checkOrSwitchToActiveChain(walletClient))) return;
+
     try {
       write && write();
       loadContractData();
     } catch (error) {}
+
   };
+
 
   function handleShareMintLink(walletAddress: string) {
     console.log(`Share mint link clicked for address: ${walletAddress}`);
@@ -198,9 +209,11 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
                     type="submit"
                     onClick={() => {
                       navigator.clipboard.writeText(
-                        window.location.href + '/mint'
+
+                        window.location.href + "/mint"
                       );
-                      toast.success('Copied!');
+                      toast.success("Copied!");
+
                     }}
                     className="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
                     disabled={!address || loading || nominating}
@@ -221,11 +234,13 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
         )}
 
         <div className="mt-6">
+
           <h2 className="text-lg">Members ({members ? members.length : ''})</h2>
           {members &&
             members.map((member) => (
               <div className="flex py-2" key={member.tokenId.toString()}>
                 <p>{member.tokenId.toString()}</p>:<p>{member.owner}</p>
+
               </div>
             ))}
         </div>

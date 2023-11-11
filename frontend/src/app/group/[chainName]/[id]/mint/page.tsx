@@ -20,6 +20,7 @@ import { goerli } from 'viem/chains';
 
 import { getContract } from 'viem';
 import LoadingIndicator from '@/components/LoadingIndicator';
+
 import {
   getViemClient,
   checkOrSwitchToActiveChain,
@@ -28,6 +29,7 @@ import {
 function MintPage({ params }: { params: { id: string; chainName: string } }) {
   const { address, isConnecting, isDisconnected, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
+
   const [minted, setMinted] = useState<boolean>();
   const [minting, setMinting] = useState<boolean>();
   const { config } = usePrepareContractWrite({

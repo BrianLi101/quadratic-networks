@@ -1,5 +1,6 @@
 'use client';
 
+
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
@@ -24,6 +25,7 @@ import {
   checkOrSwitchToActiveChain,
 } from '@/helpers/chainHelpers';
 
+
 function NewGroup() {
   const router = useRouter();
   const { address, isConnecting, isDisconnected, isConnected } = useAccount();
@@ -31,6 +33,7 @@ function NewGroup() {
   const [deploying, setDeploying] = useState<boolean>(false);
   const [transactionHash, setTransactionHash] = useState<`0x${string}`>();
   const [chain, setChain] = useState<Chain>(getActiveChain());
+  const [foundingMembers, setFoundingMembers] = useState<string[]>([address!]);
 
   const getTransaction = async (hash: `0x${string}`) => {
     let transaction = await getViemClient().getTransaction({
@@ -55,7 +58,7 @@ function NewGroup() {
       const hash = await walletClient.deployContract({
         abi,
         bytecode: bytecode.bytecode as `0x${string}`,
-        args: ['Test', 'TEST', [address], 1000],
+        args: ['Test', 'TEST', foundingMembers, 1000],
         chain: getActiveChain(),
       });
       const transaction = await getViemClient().waitForTransactionReceipt({
@@ -81,6 +84,22 @@ function NewGroup() {
     } catch (error) {
       console.log(error);
     }
+    return;
+  };
+
+  const handleAddMember = () => {
+    setFoundingMembers([...foundingMembers, ""]);
+  };
+
+  const handleMemberChange = (value: string, index: number) => {
+    const newMembers = [...foundingMembers];
+    newMembers[index] = value;
+    setFoundingMembers(newMembers);
+  };
+
+  const handleRemoveMember = (index: number) => {
+    const newMembers = foundingMembers.filter((_, i) => i !== index);
+    setFoundingMembers(newMembers);
   };
 
   return (
@@ -99,6 +118,39 @@ function NewGroup() {
               required
             />
           </div>
+
+          {foundingMembers.map((member, index) => (
+            <div key={index} className="flex flex-col mt-4">
+              <label htmlFor={`foundingMember-${index}`}>
+                {`Founding member ${index + 1}:`}
+              </label>
+              <input
+                type="text"
+                id={`foundingMember-${index}`}
+                className="py-3 px-4 rounded bg-green-800 mt-2 mb-2"
+                value={member}
+                onChange={(e) => handleMemberChange(e.target.value, index)}
+                placeholder="0x123..."
+              />
+              {index > 0 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveMember(index)}
+                  className="bg-red-200 hover:bg-red-300 text-gray-800 font-bold py-1 px-3 rounded mt-2"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={handleAddMember}
+            className="text-gray-200 mt-2 mb-6 px-3 py-2 border border-gray-200 rounded"
+          >
+            Add founding member
+          </button>
+
           {/* <div className="mb-6">
             <label htmlFor="groupImage">Upload image:</label>
             <input
@@ -108,6 +160,7 @@ function NewGroup() {
               className="mt-2 mb-6"
             />
           </div> */}
+
           <div className="dropdown">
             <label tabIndex={0} className="btn">
               Chain: {chain.name}
@@ -131,13 +184,16 @@ function NewGroup() {
               })}
             </ul>
           </div>
+
         </form>
 
         <button
           type="submit"
           onClick={handleSubmit}
           className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
+
           disabled={!isConnected || deploying}
+
         >
           Create group {deploying && <LoadingIndicator />}
         </button>

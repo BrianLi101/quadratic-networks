@@ -30,7 +30,7 @@ export default function Dashboard() {
           Create group
         </Link>
 
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <h1 className="text-lg">Your groups</h1>
           {MOCK_GROUPS.map((group) => (
             <Link
@@ -51,7 +51,7 @@ export default function Dashboard() {
               </div>
             </Link>
           ))}
-        </div>
+        </div> */}
       </div>
     </main>
   );
