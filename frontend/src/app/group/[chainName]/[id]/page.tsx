@@ -10,6 +10,7 @@ import {
   useContractReads,
   usePrepareContractWrite,
   useContractWrite,
+  useAccount,
 } from 'wagmi';
 import { createPublicClient, http, getContractAddress } from 'viem';
 import { goerli } from 'viem/chains';
@@ -93,9 +94,11 @@ interface Membership {
 
 function Group({ params }: { params: { chainName: string; id: string } }) {
   const [group, setGroup] = useState({} as any);
+  const { address, isConnecting, isDisconnected, isConnected } = useAccount();
   const [members, setMembers] = useState<Membership[]>();
   const [nominees, setNominees] = useState<Nominee[]>();
   const [loading, setLoading] = useState<boolean>(false);
+  const [nominating, setNominating] = useState<boolean>(false);
   const [threshold, setThreshold] = useState<number>(1);
   const [nomineeAddress, setNomineeAddress] = useState<string>();
   const quadraticContract = {
@@ -169,22 +172,28 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     return nominee !== undefined && nominee.nominations >= threshold;
   }
 
-  function handleNominationClick(walletAddress: string) {
-    console.log(`Nominate clicked for address: ${walletAddress}`);
+  function handleNominationClick() {
+    if (!nomineeAddress) return;
+    console.log(`Nominate clicked for address: ${nomineeAddress}`);
+    setNominating(true);
 
-    setNomineeAddress(walletAddress);
-    write && write();
+    try {
+      write && write();
+      loadContractData();
+    } catch (error) {
+      setNominating(false);
+    }
 
-    setGroup((prevGroup: any) => {
-      const updatedNominees = prevGroup.nominees.map((nominee: any) => {
-        if (nominee.walletAddress === walletAddress) {
-          return { ...nominee, nominations: nominee.nominations + 1 };
-        }
-        return nominee;
-      });
+    // setGroup((prevGroup: any) => {
+    //   const updatedNominees = prevGroup.nominees.map((nominee: any) => {
+    //     if (nominee.walletAddress === walletAddress) {
+    //       return { ...nominee, nominations: nominee.nominations + 1 };
+    //     }
+    //     return nominee;
+    //   });
 
-      return { ...prevGroup, nominees: updatedNominees };
-    });
+    //   return { ...prevGroup, nominees: updatedNominees };
+    // });
   }
 
   function handleShareMintLink(walletAddress: string) {
@@ -204,15 +213,28 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
 
         <h1 className="text-2xl mt-8 mb-4">{group?.name}</h1>
 
-        <Link
-          href={{
-            pathname: '/nomination/new',
-            query: { groupId: group.id }, // Pass the group ID as a query parameter
-          }}
-          className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
-        >
-          Nominate member
-        </Link>
+        <div className="w-full flex flex-row mt-2 mb-6">
+          <input
+            type="text"
+            id="groupName"
+            className="py-3 px-4 rounded bg-green-800 flex-1"
+            name="groupName"
+            placeholder="E.g. 0x123... or vitalik.eth"
+            required
+            value={nomineeAddress}
+            onChange={(e) => {
+              setNomineeAddress(e.target.value);
+            }}
+          />
+          <button
+            type="submit"
+            onClick={handleNominationClick}
+            className="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
+            disabled={!address || loading || nominating}
+          >
+            Nominate
+          </button>
+        </div>
 
         {nominees && (
           <div className="mt-10">
