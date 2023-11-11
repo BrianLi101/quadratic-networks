@@ -8,6 +8,7 @@ import {
   useContractWrite,
   useAccount,
   useWaitForTransaction,
+  useWalletClient,
 } from 'wagmi';
 import WagmiProvider from '@/components/WagmiProvider';
 import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
@@ -20,12 +21,15 @@ import { goerli } from 'viem/chains';
 import { getContract } from 'viem';
 import LoadingIndicator from '@/components/LoadingIndicator';
 
-export const publicClient = createPublicClient({
-  chain: goerli,
-  transport: http(process.env.NEXT_PUBLIC_ALCHEMY_URL_GOERLI),
-});
+import {
+  getViemClient,
+  checkOrSwitchToActiveChain,
+} from '@/helpers/chainHelpers';
+
 function MintPage({ params }: { params: { id: string; chainName: string } }) {
   const { address, isConnecting, isDisconnected, isConnected } = useAccount();
+  const { data: walletClient } = useWalletClient();
+
   const [minted, setMinted] = useState<boolean>();
   const [minting, setMinting] = useState<boolean>();
   const { config } = usePrepareContractWrite({
@@ -42,7 +46,7 @@ function MintPage({ params }: { params: { id: string; chainName: string } }) {
   }, [mintHash]);
   const awaitNominationTransaction = async (hash: `0x${string}`) => {
     setMinting(true);
-    const transaction = await publicClient.waitForTransactionReceipt({
+    const transaction = await getViemClient().waitForTransactionReceipt({
       hash,
     });
     console.log('transaction finished: ', transaction);
@@ -54,7 +58,7 @@ function MintPage({ params }: { params: { id: string; chainName: string } }) {
     const contract = getContract({
       address: params.id as `0x${string}`,
       abi,
-      publicClient,
+      publicClient: getViemClient(),
     });
 
     return await contract.read.checkMintPermission({ args: [address] });
@@ -74,6 +78,8 @@ function MintPage({ params }: { params: { id: string; chainName: string } }) {
               );
               return;
             }
+            if (!walletClient) return;
+            if (!(await checkOrSwitchToActiveChain(walletClient))) return;
             write && write();
           }}
           className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"

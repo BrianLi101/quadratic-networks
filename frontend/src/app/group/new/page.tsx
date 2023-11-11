@@ -1,34 +1,42 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useAccount, useWalletClient, useTransaction } from "wagmi";
-import LoadingIndicator from "@/components/LoadingIndicator";
 
-import WagmiProvider from "@/components/WagmiProvider";
-import abi from "@/contracts/QuadraticNetworksNFT/abi.json";
-import bytecode from "@/contracts/QuadraticNetworksNFT/bytecode.json";
-import { goerli } from "viem/chains";
-import { createPublicClient, http, getContractAddress } from "viem";
-import { mainnet } from "viem/chains";
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import {
+  useAccount,
+  useWalletClient,
+  useTransaction,
+  WalletClient,
+} from 'wagmi';
+import LoadingIndicator from '@/components/LoadingIndicator';
 
-export const publicClient = createPublicClient({
-  chain: goerli,
-  transport: http(process.env.NEXT_PUBLIC_ALCHEMY_URL_GOERLI),
-});
+import WagmiProvider from '@/components/WagmiProvider';
+import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
+import bytecode from '@/contracts/QuadraticNetworksNFT/bytecode.json';
+import { goerli } from 'viem/chains';
+import { getContractAddress } from 'viem';
+import { Chain } from 'viem';
+import { SUPPORTED_CHAINS } from '@/resources/constants';
+import {
+  getViemClient,
+  getActiveChain,
+  setActiveChain,
+  checkOrSwitchToActiveChain,
+} from '@/helpers/chainHelpers';
+
 
 function NewGroup() {
   const router = useRouter();
   const { address, isConnecting, isDisconnected, isConnected } = useAccount();
-
-  const [foundingMembers, setFoundingMembers] = useState<string[]>([address!]);
-
   const { data: walletClient } = useWalletClient();
   const [deploying, setDeploying] = useState<boolean>(false);
   const [transactionHash, setTransactionHash] = useState<`0x${string}`>();
+  const [chain, setChain] = useState<Chain>(getActiveChain());
+  const [foundingMembers, setFoundingMembers] = useState<string[]>([address!]);
 
   const getTransaction = async (hash: `0x${string}`) => {
-    let transaction = await publicClient.getTransaction({
+    let transaction = await getViemClient().getTransaction({
       hash: hash,
     });
     console.log({ transaction });
@@ -39,25 +47,40 @@ function NewGroup() {
     console.log({ contractAddressData });
     router.push(`/group/${goerli.name}/${contractAddressData}`);
   };
-
   const handleSubmit = async () => {
-    console.log("user clicked submit", foundingMembers);
+    console.log('user clicked submit');
     if (!walletClient) return null;
+
+    if (!(await checkOrSwitchToActiveChain(walletClient))) return;
 
     setDeploying(true);
     try {
       const hash = await walletClient.deployContract({
         abi,
         bytecode: bytecode.bytecode as `0x${string}`,
-        args: ["Test", "TEST", foundingMembers, 1000],
-        chain: goerli,
+        args: ['Test', 'TEST', foundingMembers, 1000],
+        chain: getActiveChain(),
       });
-      const transaction = await publicClient.waitForTransactionReceipt({
+      const transaction = await getViemClient().waitForTransactionReceipt({
         hash: hash,
       });
       setTransactionHash(hash);
       await getTransaction(hash);
       setDeploying(false);
+    } catch (error) {
+      console.log(error);
+    }
+    return;
+    try {
+      const response = true;
+      const id = '1';
+
+      if (response) {
+        console.log('success submit');
+
+        // TODO: Route to group page
+        // router.push(`/group/${id}`);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -127,6 +150,7 @@ function NewGroup() {
           >
             Add founding member
           </button>
+
           {/* <div className="mb-6">
             <label htmlFor="groupImage">Upload image:</label>
             <input
@@ -136,13 +160,40 @@ function NewGroup() {
               className="mt-2 mb-6"
             />
           </div> */}
+
+          <div className="dropdown">
+            <label tabIndex={0} className="btn">
+              Chain: {chain.name}
+            </label>
+            <ul
+              tabIndex={0}
+              className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
+            >
+              {SUPPORTED_CHAINS.map((c) => {
+                return (
+                  <li
+                    key={c.id}
+                    onClick={() => {
+                      setActiveChain(c);
+                      setChain(c);
+                    }}
+                  >
+                    <a>{c.name}</a>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
         </form>
 
         <button
           type="submit"
           onClick={handleSubmit}
           className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
-          // disabled={(!isConnected || deploying) ?? false}
+
+          disabled={!isConnected || deploying}
+
         >
           Create group {deploying && <LoadingIndicator />}
         </button>
