@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import WagmiProvider from '@/components/WagmiProvider';
 import toast from 'react-hot-toast';
-
+import QRCode from 'react-qr-code';
 import {
   useContractReads,
   usePrepareContractWrite,
@@ -235,6 +235,14 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
                 <p>{member.tokenId.toString()}</p>:<p>{member.owner}</p>
               </div>
             ))}
+        </div>
+
+        <div className="collapse">
+          <input type="checkbox" />
+          <div className="collapse-title text-lg">Show Mint QR ⬇️</div>
+          <div className="collapse-content">
+            <QRCode value={window.location.href} />
+          </div>
         </div>
       </div>
     </main>
