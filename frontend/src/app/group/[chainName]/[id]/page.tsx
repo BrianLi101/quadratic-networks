@@ -115,7 +115,6 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     setName(name);
 
     setLoading(false);
-    setLoading(false);
   };
 
   function canMemberJoinGroup(walletAddress: string): boolean {
