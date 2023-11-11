@@ -23,3 +23,23 @@ export const resolveENSToAddress = async (ens: string) => {
     return ens;
   }
 };
+
+export const resolveAddressToENS = async (address: string) => {
+  // ens only resolves on mainnet
+  const publicClient = createPublicClient({
+    chain: mainnet,
+    transport: http(apiKey),
+  });
+
+  try {
+    if (!address) return;
+    var ens = await publicClient.getEnsName({
+      address: address as `0x${string}`,
+    });
+    // Return original ens if no address found
+    if (!ens) return address;
+    return ens;
+  } catch (error) {
+    return address;
+  }
+};

@@ -2,21 +2,15 @@
 // need to be client component
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import WagmiProvider from '@/components/WagmiProvider';
 import toast from 'react-hot-toast';
 import QRCode from 'react-qr-code';
-import {
-  useContractReads,
-  usePrepareContractWrite,
-  useContractWrite,
-  useAccount,
-  useWalletClient,
-} from 'wagmi';
+import { useAccount, useWalletClient } from 'wagmi';
 import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
 import { getContract } from 'viem';
 import LoadingIndicator from '@/components/LoadingIndicator';
+import { ReadableAddressRow } from '@/components/ReadableAddressRow';
 
 import {
   getViemClient,
@@ -199,7 +193,7 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
                     canMemberJoinGroup(nominee.address) ? 'text-green-500' : ''
                   }`}
                 >
-                  {nominee.address}
+                  <ReadableAddressRow address={nominee.address} />
                 </p>
                 <p className="mr-6">
                   {nominee.nominators.length} / {threshold} required
@@ -236,7 +230,8 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
           {members &&
             members.map((member) => (
               <div className="flex py-2" key={member.tokenId.toString()}>
-                <p>{member.tokenId.toString()}</p>:<p>{member.owner}</p>
+                <p>{member.tokenId.toString()}</p>:
+                <ReadableAddressRow address={member.owner} />
               </div>
             ))}
         </div>
