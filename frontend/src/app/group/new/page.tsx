@@ -1,8 +1,13 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useAccount, useWalletClient, useTransaction } from 'wagmi';
+import {
+  useAccount,
+  useWalletClient,
+  useTransaction,
+  WalletClient,
+} from 'wagmi';
 import LoadingIndicator from '@/components/LoadingIndicator';
 
 import WagmiProvider from '@/components/WagmiProvider';
@@ -10,9 +15,14 @@ import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
 import bytecode from '@/contracts/QuadraticNetworksNFT/bytecode.json';
 import { goerli } from 'viem/chains';
 import { getContractAddress } from 'viem';
-import { mainnet } from 'viem/chains';
+import { Chain } from 'viem';
 import { SUPPORTED_CHAINS } from '@/resources/constants';
-import { getViemClient } from '@/helpers/chainHelpers';
+import {
+  getViemClient,
+  getActiveChain,
+  setActiveChain,
+  checkOrSwitchToActiveChain,
+} from '@/helpers/chainHelpers';
 
 function NewGroup() {
   const router = useRouter();
@@ -20,6 +30,7 @@ function NewGroup() {
   const { data: walletClient } = useWalletClient();
   const [deploying, setDeploying] = useState<boolean>(false);
   const [transactionHash, setTransactionHash] = useState<`0x${string}`>();
+  const [chain, setChain] = useState<Chain>(getActiveChain());
 
   const getTransaction = async (hash: `0x${string}`) => {
     let transaction = await getViemClient().getTransaction({
@@ -37,13 +48,15 @@ function NewGroup() {
     console.log('user clicked submit');
     if (!walletClient) return null;
 
+    if (!(await checkOrSwitchToActiveChain(walletClient))) return;
+
     setDeploying(true);
     try {
       const hash = await walletClient.deployContract({
         abi,
         bytecode: bytecode.bytecode as `0x${string}`,
         args: ['Test', 'TEST', [address], 1000],
-        chain: goerli,
+        chain: getActiveChain(),
       });
       const transaction = await getViemClient().waitForTransactionReceipt({
         hash: hash,
@@ -96,14 +109,22 @@ function NewGroup() {
             />
           </div> */}
           <div className="dropdown">
-            <label tabIndex={0} className="btn m-1"></label>
+            <label tabIndex={0} className="btn">
+              Chain: {chain.name}
+            </label>
             <ul
               tabIndex={0}
               className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
             >
               {SUPPORTED_CHAINS.map((c) => {
                 return (
-                  <li key={c.id}>
+                  <li
+                    key={c.id}
+                    onClick={() => {
+                      setActiveChain(c);
+                      setChain(c);
+                    }}
+                  >
                     <a>{c.name}</a>
                   </li>
                 );

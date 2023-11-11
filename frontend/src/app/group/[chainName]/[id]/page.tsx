@@ -11,13 +11,16 @@ import {
   usePrepareContractWrite,
   useContractWrite,
   useAccount,
-  useWaitForTransaction,
+  useWalletClient,
 } from 'wagmi';
 import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
 import { getContract } from 'viem';
 import LoadingIndicator from '@/components/LoadingIndicator';
 
-import { getViemClient } from '@/helpers/chainHelpers';
+import {
+  getViemClient,
+  checkOrSwitchToActiveChain,
+} from '@/helpers/chainHelpers';
 
 type Address = `0x${string}`;
 interface Nominee {
@@ -36,6 +39,7 @@ interface Membership {
 
 function Group({ params }: { params: { chainName: string; id: string } }) {
   const { address, isConnecting, isDisconnected, isConnected } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const [members, setMembers] = useState<Membership[]>();
   const [nominees, setNominees] = useState<Nominee[]>();
   const [loading, setLoading] = useState<boolean>(false);
@@ -121,15 +125,15 @@ function Group({ params }: { params: { chainName: string; id: string } }) {
     return nominee !== undefined && nominee.nominators.length >= threshold;
   }
 
-  function handleNominationClick() {
-    if (!nomineeAddress) return;
+  const handleNominationClick = async () => {
+    if (!nomineeAddress || !walletClient) return;
     console.log(`Nominate clicked for address: ${nomineeAddress}`);
-
+    if (!(await checkOrSwitchToActiveChain(walletClient))) return;
     try {
       write && write();
       loadContractData();
     } catch (error) {}
-  }
+  };
 
   function handleShareMintLink(walletAddress: string) {
     console.log(`Share mint link clicked for address: ${walletAddress}`);
