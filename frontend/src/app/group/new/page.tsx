@@ -36,6 +36,7 @@ function NewGroup() {
   const [name, setName] = useState<string>();
 
   const getTransaction = async (hash: `0x${string}`) => {
+    console.log('getTransaction called');
     let transaction = await getViemClient().getTransaction({
       hash: hash,
     });
@@ -45,7 +46,7 @@ function NewGroup() {
       nonce: BigInt(transaction.nonce),
     });
     console.log({ contractAddressData });
-    router.push(`/group/${goerli.name}/${contractAddressData}`);
+    router.push(`/group/${getActiveChain().name}/${contractAddressData}`);
   };
   const handleSubmit = async () => {
     console.log('user clicked submit');
@@ -59,12 +60,14 @@ function NewGroup() {
 
     setDeploying(true);
     try {
+      console.log('attempting to deploy contract');
       const hash = await walletClient.deployContract({
         abi,
         bytecode: bytecode.bytecode as `0x${string}`,
-        args: [name, name.toUpperCase(), foundingMembers, 1000],
+        args: [name, name.toUpperCase(), foundingMembers, 1000000],
         chain: getActiveChain(),
       });
+      console.log({ hash });
       const transaction = await getViemClient().waitForTransactionReceipt({
         hash: hash,
       });
@@ -74,21 +77,6 @@ function NewGroup() {
     } catch (error) {
       console.log(error);
     }
-    return;
-    try {
-      const response = true;
-      const id = '1';
-
-      if (response) {
-        console.log('success submit');
-
-        // TODO: Route to group page
-        // router.push(`/group/${id}`);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-    return;
   };
 
   const handleAddMember = () => {
