@@ -1,21 +1,52 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { useAccount, useWalletClient } from 'wagmi';
+import { useEffect, useState } from 'react';
+import { useAccount, useWalletClient, useTransaction } from 'wagmi';
 import LoadingIndicator from '@/components/LoadingIndicator';
 
 import WagmiProvider from '@/components/WagmiProvider';
 import abi from '@/contracts/QuadraticNetworksNFT/abi.json';
 import bytecode from '@/contracts/QuadraticNetworksNFT/bytecode.json';
 import { goerli } from 'viem/chains';
+import { createPublicClient, http, getContractAddress } from 'viem';
+import { mainnet } from 'viem/chains';
+export const publicClient = createPublicClient({
+  chain: goerli,
+  transport: http(process.env.NEXT_PUBLIC_ALCHEMY_URL_GOERLI),
+});
 function NewGroup() {
   const router = useRouter();
   const { address, isConnecting, isDisconnected, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const [deploying, setDeploying] = useState<boolean>(false);
+  const [transactionHash, setTransactionHash] = useState<`0x${string}`>();
+  const { data: transaction } = useTransaction({
+    chainId: goerli.id,
+    hash: '0x682c8e29667401530092e9bf45944742a9e639f84c1e0db80cb1ed642d6f35a3',
+  });
 
+  useEffect(() => {
+    if (transaction) {
+      console.log(transaction);
+    }
+  }, [transaction]);
+
+  const getTransaction = async () => {
+    let transaction = await publicClient.getTransaction({
+      hash: '0x682c8e29667401530092e9bf45944742a9e639f84c1e0db80cb1ed642d6f35a3',
+    });
+    console.log({ transaction });
+    let contractAddressData = await getContractAddress({
+      from: address!,
+      nonce: BigInt(transaction.nonce),
+    });
+    console.log({ contractAddressData });
+    router.push(`/group/${goerli.name}/${contractAddressData}`);
+  };
   const handleSubmit = async () => {
+    getTransaction();
+    return;
     console.log('user clicked submit');
     if (!walletClient) return null;
 
@@ -27,6 +58,7 @@ function NewGroup() {
         args: ['Test', 'TEST', [address], 1000],
         chain: goerli,
       });
+      setTransactionHash(hash);
       setDeploying(false);
     } catch (error) {
       console.log(error);
