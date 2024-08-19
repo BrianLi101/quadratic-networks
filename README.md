@@ -27,6 +27,8 @@ Quadratic Networks introduces a fully on-chain membership system that addresses 
 ## Future Work
 - **Quadratic Network Trimming**: Refining the network to ensure quality and relevance of the membership.
 - **Privacy Preserving Implementations**: Exploring the use of Zero-Knowledge Proofs (ZK) for enhancing privacy without compromising the integrity of the network.
+- **Removal Criteria**: allow existing members to remove members through an anonymous nomination process, starting with a function similar to the acceptance criteria.
+- **Alternative Membership Curation Functions**: Allow the use of other functions as acceptance and removal criteria.
 
 ## Contributing
 We welcome contributions from the community. Please refer to our [contributing guidelines](CONTRIBUTING.md) for more information on how to get involved.
